@@ -1,4 +1,4 @@
-FROM node:18.20.0-alpine3.19 as base
+FROM node:18.20.0-alpine3.19 AS base
 
 ARG APP_PATH=/app
 WORKDIR $APP_PATH
@@ -10,6 +10,7 @@ COPY package.json $APP_PATH/package.json
 COPY pnpm-lock.yaml $APP_PATH/pnpm-lock.yaml
 COPY pnpm-workspace.yaml $APP_PATH/pnpm-workspace.yaml
 COPY packages/server $APP_PATH/packages/server
+RUN mkdir -p $APP_PATH/packages/server/static/upload
 COPY packages/webapp $APP_PATH/packages/webapp
 COPY packages/server/view/index.html $APP_PATH/packages/webapp/index.html
 
@@ -18,7 +19,7 @@ RUN pnpm build:server
 RUN pnpm build:webapp
 RUN pnpm --filter ./packages/webapp export
 
-FROM node:18.20.0-alpine3.19 as runner
+FROM node:18.20.0-alpine3.19 AS runner
 
 ARG APP_PATH=/app
 WORKDIR $APP_PATH
