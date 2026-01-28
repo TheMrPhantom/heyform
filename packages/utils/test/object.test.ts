@@ -42,6 +42,13 @@ test('pick fields with alias from object', () => {
   })
 })
 
+test('pick fields with array entries', () => {
+  expect(pickObject(obj, [['c'], [] as any, ['d']])).toStrictEqual({
+    c: 'hello',
+    d: [1, 2, 3]
+  })
+})
+
 test('pick fields from object with excludes', () => {
   expect(pickObject(obj, [], ['a', 'b', 'nan'])).toStrictEqual({
     c: 'hello',
@@ -59,6 +66,28 @@ test('pick plain object', () => {
   ).toStrictEqual({
     'c.0': 'hello',
     list: [1, 2, 3, 4, 5]
+  })
+})
+
+test('pick valid values from invalid target', () => {
+  expect(pickValidValues(null as any, ['c'])).toStrictEqual({})
+})
+
+test('pick valid values with empty field entry', () => {
+  expect(pickValidValues({ c: 'hello' }, [[] as any, 'c'])).toStrictEqual({
+    c: 'hello'
+  })
+})
+
+test('pick valid values skips nil field', () => {
+  expect(pickValidValues({ c: 'hello' }, [undefined as any, 'c'])).toStrictEqual({
+    c: 'hello'
+  })
+})
+
+test('pick valid values with alias', () => {
+  expect(pickValidValues({ c: 'hello' }, [['c', 'alias']])).toStrictEqual({
+    alias: 'hello'
   })
 })
 
@@ -98,6 +127,23 @@ test('copy values to dist object', () => {
     j: 'world'
   })
   expect(dist === dist).toBe(true)
+})
+
+test('copy values skips invalid key maps', () => {
+  const dist = {}
+
+  copyObjectValues({ a: 1, b: 2 }, dist, [
+    [] as any,
+    undefined as any,
+    [undefined as any, 'x'],
+    ['a'],
+    ['b', undefined as any]
+  ])
+
+  expect(dist).toStrictEqual({
+    a: 1,
+    b: 2
+  })
 })
 
 test('deep equal', () => {

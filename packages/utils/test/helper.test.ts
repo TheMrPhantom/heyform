@@ -14,6 +14,15 @@ test('{} is empty', () => {
   expect(helper.isEmpty({})).toBe(true)
 })
 
+test('{ a: 1 } is not empty', () => {
+  expect(helper.isEmpty({ a: 1 })).toBe(false)
+})
+
+test('object with inherited props is empty', () => {
+  const obj = Object.create({ a: 1 })
+  expect(helper.isEmpty(obj)).toBe(true)
+})
+
 test('new Set() is empty', () => {
   expect(helper.isEmpty(new Set())).toBe(true)
 })

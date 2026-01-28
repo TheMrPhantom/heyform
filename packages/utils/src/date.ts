@@ -1,5 +1,6 @@
 import { OpUnitType, QUnitType } from 'dayjs'
 import _dayjs from 'dayjs'
+import type _ms from 'ms'
 
 import { hs } from './second'
 
@@ -15,7 +16,7 @@ export function unixDate(t: number) {
 }
 
 export function isDateExpired(start: number, end: number, expire: string): boolean {
-  return end - start > hs(expire)!
+  return end - start > hs(expire as _ms.StringValue)!
 }
 
 export function unixDiff(start: number, end: number, unit: QUnitType | OpUnitType = 'day'): number {
