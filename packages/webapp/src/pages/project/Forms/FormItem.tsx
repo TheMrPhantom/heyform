@@ -301,14 +301,14 @@ const FormItem: FC<FormItemProps> = ({ form, isInTrash, onChange }) => {
 
   return (
     <FormItemLink
-      className="first-of-type:border-accent-light last-of-type:border-accent-light hover:bg-secondary-light has-[[data-state=open]]:bg-secondary-light group flex items-center justify-between gap-6 py-4 first-of-type:border-t last-of-type:border-b"
+      className="group flex items-center justify-between gap-6 px-4 py-4 hover:bg-[#f8fafc] has-[[data-state=open]]:bg-[#f8fafc] dark:hover:bg-[#374151]"
       to={`/workspace/${form.teamId}/project/${form.projectId}/form/${form.id}/analytics`}
       isInTrash={isInTrash}
       isSuspended={form.suspended}
     >
-      <div className="flex-1 pl-2">
+      <div className="flex-1">
         <div className="text-sm/6 font-medium">{form.name}</div>
-        <div className="text-secondary text-sm/6">
+        <div className="text-secondary mt-1 text-sm/6">
           {isInTrash
             ? t('form.metadata2', {
                 count: form.submissionCount,
@@ -323,7 +323,7 @@ const FormItem: FC<FormItemProps> = ({ form, isInTrash, onChange }) => {
 
       <div className="flex items-center gap-4">
         {!isInTrash && !form.suspended && (
-          <div className="_hidden flex items-center group-hover:block">
+          <div className="_hidden flex items-center group-hover:flex">
             <Tooltip label={t('components.edit')}>
               <Button.Link size="sm" iconOnly onClick={handleEdit}>
                 <IconPencil className="h-5 w-5" />
@@ -369,7 +369,7 @@ const FormItem: FC<FormItemProps> = ({ form, isInTrash, onChange }) => {
 
 const Skeleton = () => {
   return (
-    <div className="first-of-type:border-accent-light last-of-type:border-accent-light group flex items-center justify-between gap-6 py-4 first-of-type:border-t last-of-type:border-b">
+    <div className="group flex items-center justify-between gap-6 px-4 py-4">
       <div className="flex-1">
         <div className="py-[0.3125rem]">
           <div className="skeleton h-3.5 w-24 rounded-sm"></div>

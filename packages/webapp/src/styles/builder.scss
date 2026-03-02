@@ -100,12 +100,8 @@
     max-width: 45rem;
     min-height: 3.75rem;
 
-    .heyform-block-number {
-      @apply text-xs;
-    }
-
     .heyform-block-title {
-      @apply mb-0 ml-4 flex-1 truncate text-xl;
+      @apply mb-0 flex-1 truncate text-xl;
     }
   }
 
@@ -127,7 +123,7 @@
     @apply flex items-center justify-center;
 
     img {
-      @apply h-auto w-auto max-w-full rounded-none;
+      @apply h-auto w-auto max-w-full rounded-2xl;
       max-width: 70%;
     }
   }
@@ -304,7 +300,7 @@
     @apply mb-8;
 
     img {
-      @apply inline-block h-auto w-auto;
+      @apply inline-block h-auto w-auto rounded-2xl;
       max-width: 75%;
       max-height: 20rem;
     }
@@ -364,13 +360,6 @@
     }
   }
 
-  .heyform-block-number {
-    @apply mb-1 text-base;
-    color: var(--heyform-label-color);
-  }
-
-  
-  
   .heyform-submit-container {
     @apply mt-8 flex items-center justify-start transition-opacity duration-500;
   }

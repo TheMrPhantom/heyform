@@ -114,19 +114,29 @@ export const RichText: FC<RichTextProps> = ({
     hideMentionMenu()
   }
 
-  function handleMouseUp() {
+  function handleToolbarSelectionChange() {
     const sel = window.getSelection()
 
-    if (sel) {
-      const text = sel.toString()
+    if (!sel || sel.rangeCount < 1) {
+      hideToolbar()
+      return
+    }
 
-      if (helper.isValid(text)) {
-        setToolbarRange(sel!.getRangeAt(0).cloneRange())
-        setIsToolbarOpen(true)
-      } else {
-        setToolbarRange(undefined)
-        setIsToolbarOpen(false)
-      }
+    const root = innerRef.current
+
+    // Only show toolbar for non-collapsed selections fully inside this rich-text node.
+    if (!root || !root.contains(sel.anchorNode) || !root.contains(sel.focusNode)) {
+      hideToolbar()
+      return
+    }
+
+    const text = sel.toString().replace(/\u200b/g, '')
+
+    if (!sel.isCollapsed && helper.isValid(text)) {
+      setToolbarRange(sel.getRangeAt(0).cloneRange())
+      setIsToolbarOpen(true)
+    } else {
+      hideToolbar()
     }
   }
 
@@ -152,7 +162,7 @@ export const RichText: FC<RichTextProps> = ({
         setTriggerSelection(selection)
       }
 
-      handleMouseUp()
+      handleToolbarSelectionChange()
     }
   }
 
@@ -197,7 +207,7 @@ export const RichText: FC<RichTextProps> = ({
     triggerSelection
   ])
   const handlePasteCallback = useCallback(handlePaste, [isToolbarOpen])
-  const handleMouseUpCallback = useCallback(handleMouseUp, [])
+  const handleToolbarSelectionChangeCallback = useCallback(handleToolbarSelectionChange, [innerRef])
   const hideMentionMenuCallback = useCallback(hideMentionMenu, [])
   const handleMentionSelectCallback = useCallback(handleMentionSelect, [keyword, triggerSelection])
   const hideToolbarCallback = useCallback(hideToolbar, [])
@@ -207,6 +217,19 @@ export const RichText: FC<RichTextProps> = ({
       innerRef.current.innerHTML = value!
     }
   }, [innerRef])
+
+  useEffect(() => {
+    function handleSelectionChange() {
+      if (!isMentionOpen) {
+        handleToolbarSelectionChangeCallback()
+      }
+    }
+
+    document.addEventListener('selectionchange', handleSelectionChange)
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange)
+    }
+  }, [isMentionOpen, handleToolbarSelectionChangeCallback])
 
   return (
     <>
@@ -223,7 +246,7 @@ export const RichText: FC<RichTextProps> = ({
         onKeyUp={handleKeyUpCallback}
         onInput={handleInputCallback}
         onPaste={handlePasteCallback}
-        onMouseUp={handleMouseUpCallback}
+        onMouseUp={handleToolbarSelectionChangeCallback}
         {...restProps}
       />
 

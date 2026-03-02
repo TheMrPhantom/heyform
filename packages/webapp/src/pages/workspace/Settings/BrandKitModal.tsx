@@ -289,10 +289,6 @@ const ModalComponent = () => {
                   <div className="flex min-h-full flex-col items-center justify-center">
                     <div className="heyform-block heyform-short-text">
                       <div className="mb-10">
-                        <label className="heyform-block-number">
-                          {t('settings.branding.brandKitPreview.number')}{' '}
-                          <span className="text-error">*</span>
-                        </label>
                         <div className="rich-text heyform-block-title">
                           {t('settings.branding.brandKitPreview.title')}
                         </div>

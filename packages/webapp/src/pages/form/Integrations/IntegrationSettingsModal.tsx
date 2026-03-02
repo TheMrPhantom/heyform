@@ -1,5 +1,5 @@
-import { IconDots } from '@tabler/icons-react'
-import { FC } from 'react'
+import { IconDots, IconLink } from '@tabler/icons-react'
+import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { IntegrationService } from '@/services'
@@ -58,6 +58,7 @@ const SettingsForm: FC<IntegrationSettingsProps> = ({ app, onValuesChange }) => 
 
 const Settings: FC<{ app: IntegratedAppType }> = ({ app }) => {
   const { t } = useTranslation()
+  const [hasIconError, setHasIconError] = useState(false)
 
   return (
     <div>
@@ -70,7 +71,17 @@ const Settings: FC<{ app: IntegratedAppType }> = ({ app }) => {
           <IconDots className="text-input h-6 w-6" />
 
           <div className="after:border-accent-light relative h-12 w-12 p-1 after:absolute after:inset-0 after:rounded-lg after:border">
-            <Image className="h-full w-full rounded-lg object-cover" src={app.icon!} />
+            {!hasIconError && !!app.icon ? (
+              <Image
+                className="h-full w-full rounded-lg object-cover"
+                src={app.icon}
+                onError={() => setHasIconError(true)}
+              />
+            ) : (
+              <div className="bg-accent-light text-secondary flex h-full w-full items-center justify-center rounded-lg">
+                <IconLink className="h-5 w-5" />
+              </div>
+            )}
           </div>
         </div>
 

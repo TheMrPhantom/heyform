@@ -241,6 +241,34 @@ const MultipleChoiceItem: FC<SubmissionCellProps> = ({ answer, field, isTableCel
   )
 }
 
+const YesNoItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) => {
+  const choices = field.properties?.choices as Choice[]
+
+  if (answer.kind !== field.kind || !helper.isValidArray(choices)) {
+    return null
+  }
+
+  const value = helper.isObject(answer.value) ? answer.value.value : answer.value
+  const selected = choices.find(c => c.id === value)
+
+  if (!selected) {
+    return null
+  }
+
+  return (
+    <div className={cn('flex', isTableCell ? 'gap-x-2 overflow-hidden py-2' : 'flex-wrap gap-2')}>
+      <Badge
+        color="zinc"
+        className={cn('text-primary', {
+          'text-nowrap': isTableCell
+        })}
+      >
+        {selected.label}
+      </Badge>
+    </div>
+  )
+}
+
 const OpinionScaleItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) => {
   if (answer.kind !== field.kind || !helper.isNumeric(answer.value)) {
     return null
@@ -358,8 +386,10 @@ export default function SubmissionCell(props: SubmissionCellProps) {
 
     case FieldKindEnum.MULTIPLE_CHOICE:
     case FieldKindEnum.PICTURE_CHOICE:
-    case FieldKindEnum.YES_NO:
       return <MultipleChoiceItem {...props} />
+
+    case FieldKindEnum.YES_NO:
+      return <YesNoItem {...props} />
 
     case FieldKindEnum.RATING:
     case FieldKindEnum.OPINION_SCALE:

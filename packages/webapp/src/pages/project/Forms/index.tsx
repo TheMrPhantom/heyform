@@ -43,14 +43,14 @@ export default function ProjectForms() {
       fetch={fetch}
       refreshDeps={[projectId]}
       loader={
-        <div className="divide-accent-light divide-y [&_:first-of-type]:border-t-0">
+        <div className="hf-card divide-y divide-[#e5e7eb]">
           <Repeat count={3}>
             <FormItem.Skeleton />
           </Repeat>
         </div>
       }
       emptyRender={() => (
-        <div className="border-accent-light mt-4 flex flex-1 items-center justify-center rounded-lg border border-dashed py-36 shadow-sm">
+        <div className="mt-4">
           <EmptyState
             headline={t('project.forms.headline')}
             subHeadline={t('dashboard.pickTemplate')}
@@ -60,7 +60,7 @@ export default function ProjectForms() {
         </div>
       )}
     >
-      <div className="divide-accent-light divide-y [&_:first-of-type]:border-t-0">
+      <div className="hf-card mt-4 divide-y divide-[#e5e7eb]">
         {forms.map(f => (
           <FormItem key={f.id} form={f} onChange={handleChange} />
         ))}

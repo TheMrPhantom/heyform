@@ -1,8 +1,8 @@
-import { FieldLayoutAlignEnum, QUESTION_FIELD_KINDS } from '@heyform-inc/shared-types-enums'
+import { FieldLayoutAlignEnum } from '@heyform-inc/shared-types-enums'
 import clsx from 'clsx'
 import { FC, WheelEvent, useEffect, useMemo, useState } from 'react'
 
-import { questionNumber, removeHeading, replaceHTML, useTranslation } from '../utils'
+import { removeHeading, replaceHTML } from '../utils'
 import { htmlUtils } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
@@ -32,7 +32,6 @@ export const Block: FC<BlockProps> = ({
   children,
   ...restProps
 }) => {
-  const { t } = useTranslation()
   const { state, dispatch } = useStore()
   const { values, fields, query, variables } = state
 
@@ -45,7 +44,6 @@ export const Block: FC<BlockProps> = ({
     [fields, query, rawField, values, variables]
   )
 
-  const isQuestion = QUESTION_FIELD_KINDS.includes(field.kind)
   const isInlineLayout = field.layout?.align === FieldLayoutAlignEnum.INLINE
   const isSplitLayout = SPLIT_LAYOUTS.includes(field.layout?.align as FieldLayoutAlignEnum)
 
@@ -105,11 +103,6 @@ export const Block: FC<BlockProps> = ({
         {field.parent && (
           <div className="heyform-block-group">
             <div className="heyform-block-group-container">
-              <div className="heyform-block-number">
-                {t('Question {{number}}', {
-                  number: questionNumber(field.parent!.index)
-                })}
-              </div>
               <h2 className="heyform-block-title">
                 {htmlUtils.plain(field.parent.title as string)}
               </h2>
@@ -133,22 +126,6 @@ export const Block: FC<BlockProps> = ({
                 <div className="heyform-block-main">
                   <div className="heyform-block-wrapper">
                     <div className="heyform-block-header">
-                      {isQuestion && (
-                        <div
-                          className={clsx(
-                            'heyform-block-number',
-                            `heyform-block-number-${questionNumber(
-                              field.index,
-                              field.parent?.index
-                            )}`
-                          )}
-                        >
-                          {t('Question {{number}}', {
-                            number: questionNumber(field.index, field.parent?.index)
-                          })}{' '}
-                          {field.validations?.required && <span className="text-red-700">*</span>}
-                        </div>
-                      )}
                       {field.title && (
                         <h1
                           className="heyform-block-title"

@@ -1,7 +1,7 @@
 {
   "name": "heyform",
   "homepage": "https://heyform.net",
-  "author": "Heyooo, Inc.",
+  "author": "EarlyBird, Inc.",
   "license": "AGPL-3.0",
   "private": true,
   "engines": {
@@ -15,7 +15,7 @@
     "build:server": "pnpm --filter ./packages/server build",
     "build:webapp": "pnpm --filter ./packages/webapp build",
     "format": "prettier --write \"packages/**/*.{js,ts,tsx,css}\"",
-    "lint": "oxlint packages",
+    "lint": "node scripts/run-oxlint.js packages",
     "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {
@@ -27,7 +27,7 @@
     ],
     "*.{ts,tsx}": [
       "prettier --parser=typescript --write",
-      "oxlint packages --fix --ignore-pattern '*.d.ts'"
+      "node scripts/run-oxlint.js packages --fix --ignore-pattern '*.d.ts'"
     ]
   },
   "dependencies": {

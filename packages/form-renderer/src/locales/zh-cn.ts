@@ -7,8 +7,6 @@ export default {
   'Re-select file': '重新选择文件',
   'Upload a file or drag and drop': '上传文件或拖放文件到此处',
   'Size limit': '大小限制',
-  'Never submit passwords!': '永远不提交密码！',
-  'Report Abuse': '报告滥用',
   Next: '下一个',
   Skip: '跳过',
   Submit: '提交',

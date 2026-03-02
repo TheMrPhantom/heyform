@@ -7,8 +7,6 @@ export default {
   'Re-select file': 'Dosyayı yeniden seçin',
   'Upload a file or drag and drop': 'Bir dosya yükleyin veya sürükleyip bırakın',
   'Size limit': 'Boyut sınırı',
-  'Never submit passwords!': 'Asla şifre göndermeyin!',
-  'Report Abuse': 'Suistimali Bildir',
   Next: 'İleri',
   Skip: 'Atla',
   Submit: 'Gönder',

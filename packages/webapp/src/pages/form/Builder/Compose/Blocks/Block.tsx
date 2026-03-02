@@ -1,5 +1,4 @@
-import { questionNumber } from '@heyform-inc/form-renderer'
-import { FieldLayoutAlignEnum, QUESTION_FIELD_KINDS } from '@heyform-inc/shared-types-enums'
+import { FieldLayoutAlignEnum } from '@heyform-inc/shared-types-enums'
 import type { FC } from 'react'
 import { RefObject, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +21,7 @@ export interface BlockProps extends ComponentProps {
 export const Block: FC<BlockProps> = ({
   className,
   field,
-  locale,
+  locale: _locale,
   parentField,
   children,
   ...restProps
@@ -33,7 +32,6 @@ export const Block: FC<BlockProps> = ({
   const titleRef = useRef<HTMLDivElement>(undefined)
   const descriptionRef = useRef<HTMLDivElement>(undefined)
 
-  const isLabelShow = QUESTION_FIELD_KINDS.includes(field.kind)
   const isCoverShow = helper.isValid(field.layout?.mediaUrl)
   const isImageCover = helper.isURL(field.layout?.mediaUrl)
 
@@ -85,12 +83,6 @@ export const Block: FC<BlockProps> = ({
       {parentField && (
         <div className="heyform-block-group rounded-t-lg">
           <div className="heyform-block-group-container">
-            <label className="heyform-block-number">
-              {t('Question {{number}}', {
-                number: questionNumber(parentField!.index),
-                lng: locale
-              })}
-            </label>
             <div className="heyform-block-title">{parentField.title}</div>
           </div>
         </div>
@@ -104,15 +96,6 @@ export const Block: FC<BlockProps> = ({
         <div className="flex min-h-full flex-col items-center justify-center">
           <div className={cn('heyform-block', className)} {...restProps}>
             <div className="mb-10">
-              {isLabelShow && (
-                <label className="heyform-block-number">
-                  {t('Question {{number}}', {
-                    number: questionNumber(field.index, parentField?.index),
-                    lng: locale
-                  })}{' '}
-                  {field.validations?.required && <span className="text-error">*</span>}
-                </label>
-              )}
               <RichText
                 className="heyform-block-title"
                 innerRef={titleRef as RefObject<HTMLDivElement>}

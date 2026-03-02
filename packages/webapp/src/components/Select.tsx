@@ -343,6 +343,7 @@ const MultiSelect: FC<MultiSelectProps> = ({
 
   const handleRemove = useCallback(
     (event: MouseEvent<HTMLButtonElement>, itemValue: string) => {
+      event.preventDefault()
       event.stopPropagation()
       handleSelect(itemValue)
     },
@@ -378,6 +379,7 @@ const MultiSelect: FC<MultiSelectProps> = ({
                 >
                   {row.label}
                   <button
+                    type="button"
                     className="text-secondary hover:text-primary -mr-0.5"
                     onClick={e => handleRemove(e, row.value)}
                   >

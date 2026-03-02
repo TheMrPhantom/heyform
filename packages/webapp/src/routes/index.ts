@@ -163,7 +163,6 @@ const routes = [
     component: FormSubmissions,
     options: {
       loginRequired: true,
-      className: '[&_[data-slot=layout-inner]]:max-w-full',
       title: 'form.submissions.title'
     }
   },

@@ -20,15 +20,15 @@ export const EmptyState: FC<EmptyStateProps> = ({
   onClick
 }) => {
   return (
-    <div className={cn('flex flex-col items-center text-center', className)}>
-      {icon && <div className="mb-6">{icon}</div>}
+    <div className={cn('hf-empty-state flex flex-col items-center text-center', className)}>
+      {icon && <div className="text-secondary mb-4">{icon}</div>}
 
-      <h3 className="text-xl/8 font-semibold sm:text-lg/8" data-slot="headline">
+      <h3 className="text-lg font-medium" data-slot="headline">
         {headline}
       </h3>
 
       {subHeadline && (
-        <p className="text-secondary mt-1 text-sm" data-slot="subheadline">
+        <p className="text-secondary mt-2 max-w-md text-sm" data-slot="subheadline">
           {subHeadline}
         </p>
       )}

@@ -130,7 +130,7 @@ export function getThemeStyle(theme: FormTheme, query?: Record<string, any>): st
   html {
     --heyform-font-family: ${theme.fontFamily};
     --heyform-question-color: ${theme.questionTextColor};
-    --heyform-description-color: ${alpha(theme.questionTextColor!, 0.7)};
+    --heyform-description-color: ${alpha(theme.questionTextColor!, 0.8)};
     --heyform-label-color: ${alpha(theme.questionTextColor!, 0.5)};
     --heyform-answer-color: ${theme.answerTextColor};
     --heyform-answer-opacity-80-color: ${alpha(theme.answerTextColor!, 0.8)};

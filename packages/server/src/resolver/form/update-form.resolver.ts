@@ -3,15 +3,12 @@ import { UpdateFormInput } from '@graphql'
 import { helper, pickValidValues } from '@heyform-inc/utils'
 import { FormModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
-import { FormService, SubmissionService } from '@service'
+import { FormService } from '@service'
 
 @Resolver()
 @Auth()
 export class UpdateFormResolver {
-  constructor(
-    private readonly formService: FormService,
-    private readonly submissionService: SubmissionService
-  ) {}
+  constructor(private readonly formService: FormService) {}
 
   @Mutation(returns => Boolean)
   @FormGuard()
@@ -60,8 +57,10 @@ export class UpdateFormResolver {
       }
     }
 
-    if (input.allowArchive === false) {
-      await this.submissionService.deleteByIds(input.formId)
+    // `pickValidValues` drops empty arrays, but we must persist language updates
+    // (including clearing translations to an empty list).
+    if (Object.prototype.hasOwnProperty.call(input, 'languages')) {
+      updates['settings.languages'] = helper.isArray(input.languages) ? input.languages : []
     }
 
     if (

@@ -1,6 +1,21 @@
 
 @import '@heyform-inc/form-renderer/style.css';
 
+.heyform-layout-float_left img,
+.heyform-layout-float_right img {
+  border-radius: 1rem;
+}
+
+.heyform-layout-split_left img {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.heyform-layout-split_right img {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 #heyform-render-root {
   height: 100vh;
   width: 100vw;

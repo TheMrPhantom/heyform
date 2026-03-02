@@ -7,8 +7,6 @@ export default {
   'Re-select file': 'Vyber znovu soubor',
   'Upload a file or drag and drop': 'Vyberte soubor nebo přetáhněte sem',
   'Size limit': 'Omezení velikosti',
-  'Never submit passwords!': 'Nikdy nevyplňujte heslo!',
-  'Report Abuse': 'Nahlásit',
   Next: 'Další',
   Skip: 'Přeskočit',
   Submit: 'Dokončit',

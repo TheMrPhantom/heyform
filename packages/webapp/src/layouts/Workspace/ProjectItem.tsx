@@ -73,13 +73,9 @@ export default function ProjectItem({ project }: ProjectItemProps) {
   return (
     <NavLink
       className={({ isActive }) =>
-        cn(
-          'hover:bg-accent-light has-[[data-state=open]]:bg-accent-light group flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium sm:px-2 sm:py-1.5 lg:py-2',
-          {
-            'before:bg-primary relative before:absolute before:inset-y-2 before:-left-4 before:w-0.5 before:rounded-full':
-              isActive
-          }
-        )
+        cn('hf-sidebar-link group justify-between has-[[data-state=open]]:bg-[#f8fafc]', {
+          'hf-sidebar-link-active': isActive
+        })
       }
       to={`/workspace/${workspaceId}/project/${project.id}/`}
     >
@@ -96,7 +92,7 @@ export default function ProjectItem({ project }: ProjectItemProps) {
         onClick={handleClick}
       >
         <Button.Link
-          className="data-[state=open]:bg-accent-light !h-5 !w-5 rounded opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+          className="!h-5 !w-5 rounded-md opacity-0 group-hover:opacity-100 data-[state=open]:bg-[#f8fafc] data-[state=open]:opacity-100"
           size="sm"
           iconOnly
         >

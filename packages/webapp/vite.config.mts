@@ -27,9 +27,24 @@ export default ({ mode }: ConfigEnv) => {
       }
     },
     resolve: {
-      alias: {
-        '@': resolve(__dirname, './src')
-      }
+      alias: [
+        {
+          find: /^@heyform-inc\/form-renderer\/style\.css$/,
+          replacement: resolve(__dirname, '../form-renderer/src/style.scss')
+        },
+        {
+          find: /^@heyform-inc\/form-renderer\/src$/,
+          replacement: resolve(__dirname, '../form-renderer/src/index.ts')
+        },
+        {
+          find: /^@heyform-inc\/form-renderer$/,
+          replacement: resolve(__dirname, '../form-renderer/src/index.ts')
+        },
+        {
+          find: '@',
+          replacement: resolve(__dirname, './src')
+        }
+      ]
     },
     build: {
       target: 'es2015',

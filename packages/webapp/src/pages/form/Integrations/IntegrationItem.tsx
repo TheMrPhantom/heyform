@@ -1,6 +1,6 @@
-import { IconPencil, IconTrash } from '@tabler/icons-react'
+import { IconLink, IconPencil, IconTrash } from '@tabler/icons-react'
 import { useRequest } from 'ahooks'
-import { FC, useMemo } from 'react'
+import { FC, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { IntegrationService } from '@/services'
@@ -22,6 +22,7 @@ const IntegrationItem: FC<IntegrationItemProps> = ({ app }) => {
   const { formId } = useParam()
   const { openModal } = useAppStore()
   const { updateIntegration, deleteIntegration } = useFormStore()
+  const [hasIconError, setHasIconError] = useState(false)
 
   const active = useMemo(
     () =>
@@ -100,7 +101,17 @@ const IntegrationItem: FC<IntegrationItemProps> = ({ app }) => {
   return (
     <li className="border-input cursor-default rounded-lg border px-4 py-6 text-sm">
       <div className="flex items-center justify-between">
-        <Image className="border-accent-light h-8 w-8 rounded-lg border" src={app.icon} />
+        {!hasIconError && helper.isValid(app.icon) ? (
+          <Image
+            className="border-accent-light h-8 w-8 rounded-lg border"
+            src={app.icon}
+            onError={() => setHasIconError(true)}
+          />
+        ) : (
+          <div className="border-accent-light bg-accent-light text-secondary flex h-8 w-8 items-center justify-center rounded-lg border">
+            <IconLink className="h-4 w-4" />
+          </div>
+        )}
         {children}
       </div>
       <div className="mt-2 font-medium">{app.name}</div>

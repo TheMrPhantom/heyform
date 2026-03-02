@@ -53,7 +53,7 @@ export default function ProjectTrash() {
         fetch={fetch}
         refreshDeps={[projectId]}
         loader={
-          <div className="divide-accent-light divide-y [&_:first-of-type]:border-t-0">
+          <div className="hf-card mt-4 divide-y divide-[#e5e7eb]">
             <Repeat count={3}>
               <FormItem.Skeleton />
             </Repeat>
@@ -68,7 +68,7 @@ export default function ProjectTrash() {
           </div>
         )}
       >
-        <div className="divide-accent-light divide-y [&_:first-of-type]:border-t-0">
+        <div className="hf-card mt-4 divide-y divide-[#e5e7eb]">
           {forms.map(f => (
             <FormItem key={f.id} form={f} isInTrash onChange={handleChange} />
           ))}

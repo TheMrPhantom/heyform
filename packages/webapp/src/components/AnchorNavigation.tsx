@@ -67,16 +67,11 @@ export const AnchorNavigation: FC<AnchorNavigationProps> = ({ className, menus }
   }, [])
 
   return (
-    <nav
-      className={cn(
-        'scrollbar sticky top-10 flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1',
-        className
-      )}
-    >
+    <nav className={cn('hf-anchor-nav', className)}>
       {menus.map(m => (
         <a
           key={m.value}
-          className="data-[state=active]:bg-accent-light data-[state=inactive]:hover:bg-accent-light inline-flex h-8 items-center justify-start whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium"
+          className="hf-anchor-item"
           href={`#${m.value}`}
           data-state={hash === m.value ? 'active' : 'inactive'}
         >

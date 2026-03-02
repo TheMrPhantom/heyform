@@ -7,6 +7,7 @@ import {
 } from '@heyform-inc/shared-types-enums'
 import {
   IconAdjustmentsHorizontal,
+  IconCheck,
   IconDownload,
   IconMaximize,
   IconMinimize,
@@ -19,10 +20,12 @@ import { useTranslation } from 'react-i18next'
 import { SubmissionService } from '@/services'
 import { cn, useParam } from '@/utils'
 import { flattenFields } from '@heyform-inc/answer-utils'
+import { helper } from '@heyform-inc/utils'
 
 import IconMove from '@/assets/move.svg?react'
 import {
   Button,
+  Dropdown,
   EmptyState,
   Repeat,
   Select,
@@ -61,6 +64,7 @@ export default function FormSubmissions() {
 
   const [category, setCategory] = useState<string>(SubmissionCategoryEnum.INBOX)
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
+  const [hiddenFieldIds, setHiddenFieldIds] = useState<string[]>([])
   const [isMaximized, { toggle }] = useBoolean(false)
 
   const targetCategory = useMemo(
@@ -164,9 +168,14 @@ export default function FormSubmissions() {
     }
   }
 
+  const visibleFields = useMemo(
+    () => fields.filter(row => !hiddenFieldIds.includes(row.id)),
+    [fields, hiddenFieldIds]
+  )
+
   const columns: TableColumn<FormField, SubmissionType>[] = useMemo(
     () =>
-      fields.map(row => ({
+      visibleFields.map(row => ({
         field: row,
         headerRender: field => <SubmissionHeaderCell field={field} />,
         cellRender: (field, submission) => {
@@ -181,15 +190,34 @@ export default function FormSubmissions() {
           )
         }
       })),
-    [fields]
+    [visibleFields]
   )
+
+  const viewOptions = useMemo(
+    () =>
+      fields.map(field => ({
+        value: field.id,
+        label:
+          helper.isArray(field.title) && field.title.length > 0
+            ? String(field.title[0])
+            : String(field.title || field.id),
+        icon: hiddenFieldIds.includes(field.id) ? undefined : <IconCheck className="h-4 w-4" />
+      })),
+    [fields, hiddenFieldIds]
+  )
+
+  function handleViewOptionClick(value: string) {
+    setHiddenFieldIds(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+    )
+  }
 
   function handleToggle() {
     toggle()
   }
 
   function handleDownload() {
-    window.open(`/export/submissions?formId=${formId}`)
+    window.open(`/api/export/submissions?formId=${encodeURIComponent(formId)}`)
   }
 
   function handleClose() {
@@ -211,7 +239,7 @@ export default function FormSubmissions() {
 
   return (
     <>
-      <div className={cn(isMaximized ? 'bg-foreground fixed inset-0 p-4' : 'mt-4')}>
+      <div className={cn(isMaximized ? 'bg-foreground fixed inset-0 p-6' : 'mt-6')}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-x-2.5">
             <Select
@@ -264,10 +292,19 @@ export default function FormSubmissions() {
               </Button.Ghost>
             </Tooltip>
 
-            <Button.Ghost size="md">
-              <IconAdjustmentsHorizontal className="h-5 w-5" />
-              <span className="hidden sm:block">{t('form.submissions.view')}</span>
-            </Button.Ghost>
+            <Dropdown
+              options={viewOptions}
+              contentProps={{
+                sideOffset: 8,
+                className: 'min-w-44 max-h-80 overflow-y-auto'
+              }}
+              onClick={handleViewOptionClick}
+            >
+              <Button.Ghost size="md">
+                <IconAdjustmentsHorizontal className="h-5 w-5" />
+                <span className="hidden sm:block">{t('form.submissions.view')}</span>
+              </Button.Ghost>
+            </Dropdown>
           </div>
         </div>
 
@@ -276,17 +313,17 @@ export default function FormSubmissions() {
             ref={tableRef}
             classNames={{
               container: cn(
-                'scrollbar overflow-auto rounded-md border border-accent text-sm',
+                'hf-table-shell scrollbar text-sm',
                 isMaximized ? 'h-[calc(100vh-9rem)]' : 'h-[calc(100vh-23.45rem)]'
               ),
               table:
-                'min-w-full text-left [&_tbody_td]:max-w-60 [&_tbody_td]:h-10 [&_tbody_td]:px-4 [&_tbody_td]:text-left [&_tbody_td]:font-normal [&_thead_th]:truncate [&_thead_th]:max-w-60 [&_thead_th]:px-4 [&_thead_th]:h-10 [&_thead_th]:text-left [&_thead_th]:font-normal [&_thead_tr]:sticky [&_thead_tr]:top-0 [&_thead_tr]:bg-foreground [&_thead]:text-secondary',
-              footer: 'text-sm justify-end'
+                '[&_tbody_td]:max-w-60 [&_tbody_td]:font-normal [&_thead_th]:truncate [&_thead_th]:max-w-60',
+              footer: 'justify-end text-sm'
             }}
             columns={columns}
             loader={
               <Repeat count={20}>
-                <div className="border-accent flex h-10 items-center gap-x-8 border-b px-4">
+                <div className="flex h-11 items-center gap-x-8 border-b border-[#e5e7eb] px-4">
                   <div className="skeleton h-4 w-4 rounded-md" />
                   <div className="skeleton h-4 w-20 rounded-md" />
                   <div className="skeleton h-4 w-60 rounded-md" />
@@ -296,7 +333,7 @@ export default function FormSubmissions() {
             }
             emptyRender={({ refresh }) => (
               <EmptyState
-                className="flex h-[calc(100vh-26.5rem)] flex-col items-center justify-center"
+                className="flex h-[calc(100vh-26.5rem)] flex-col items-center justify-center border-0 bg-transparent p-0"
                 headline={t('form.submissions.headline')}
                 subHeadline={t('form.submissions.subHeadline')}
                 buttonTitle={t('components.refresh')}

@@ -41,8 +41,7 @@ export interface TableState {
 }
 
 interface TableProps<T, K>
-  extends Omit<AsyncProps, 'fetch' | 'children'>,
-    TableHTMLAttributes<HTMLTableElement> {
+  extends Omit<AsyncProps, 'fetch' | 'children'>, TableHTMLAttributes<HTMLTableElement> {
   ref?: Ref<TableRef<K>>
   classNames?: {
     tablePanel?: string
@@ -83,7 +82,7 @@ function Tr<T, K>({ index, record, columns, isSelected, onSelect, onClick }: TrP
 
   return (
     <tr
-      className="border-accent hover:bg-primary/[2.5%] data-[selected]:bg-primary/[2.5%] cursor-pointer border-b [&:hover_[data-slot=expand]]:opacity-100"
+      className="cursor-pointer border-b border-[#e5e7eb] hover:bg-[#f8fafc] data-[selected]:bg-[#f8fafc] [&:hover_[data-slot=expand]]:opacity-100"
       data-selected={isSelected ? '' : undefined}
       onClick={handleClick}
     >
@@ -243,8 +242,8 @@ export function Table<T, K>({
         return emptyRender?.({ refresh })
       } else {
         return (
-          <table className={classNames?.table}>
-            <thead className="border-accent border-b">{Thead}</thead>
+          <table className={cn('hf-table min-w-full text-left', classNames?.table)}>
+            <thead>{Thead}</thead>
             <tbody>{TBody}</tbody>
           </table>
         )

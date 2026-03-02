@@ -14,13 +14,13 @@ export default function WorkspaceSettings() {
   return (
     <>
       <div className="w-full">
-        <div className="mx-auto max-w-4xl">
-          <h1 className="text-2xl/8 font-semibold sm:text-xl/8">{t('settings.title')}</h1>
+        <div className="mx-auto max-w-5xl">
+          <h1 className="hf-page-title">{t('settings.title')}</h1>
 
-          <hr className="border-accent-light my-10 mt-6 w-full border-t" />
+          <hr className="my-6 w-full border-t border-[#e5e7eb]" />
 
-          <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-16 lg:space-y-0">
-            <aside className="-mx-3 lg:w-1/4">
+          <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+            <aside className="lg:w-1/4">
               <AnchorNavigation
                 menus={[
                   {
@@ -39,7 +39,7 @@ export default function WorkspaceSettings() {
               />
             </aside>
 
-            <div className="flex-1">
+            <div className="hf-card flex-1 p-6">
               <WorkspaceGeneral />
               <WorkspaceBranding />
               <WorkspaceDeletion />

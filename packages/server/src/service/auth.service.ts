@@ -18,15 +18,7 @@ import {
   VERIFICATION_CODE_EXPIRE,
   VERIFICATION_CODE_LIMIT
 } from '@environments'
-import {
-  RandomType,
-  helper,
-  hs,
-  isDateExpired,
-  parseNumber,
-  random,
-  timestamp
-} from '@heyform-inc/utils'
+import { helper, hs, isDateExpired, parseNumber, random, timestamp } from '@heyform-inc/utils'
 import { UserActivityKindEnum, UserActivityModel } from '@model'
 import { aesDecryptObject, aesEncryptObject } from '@utils'
 import { UserAgent } from '@utils'
@@ -54,6 +46,7 @@ const DEFAULT_ATTEMPTS_OPTIONS = {
   max: 5,
   expire: '15m'
 }
+const NUMERIC_ALPHABET = '0123456789'
 
 @Injectable()
 export class AuthService {
@@ -209,7 +202,11 @@ export class AuthService {
     }
   }
 
-  async getVerificationCode(key: string, length = 6, type = RandomType.NUMERIC): Promise<string> {
+  async getVerificationCode(
+    key: string,
+    length = 6,
+    type: string = NUMERIC_ALPHABET
+  ): Promise<string> {
     const code = random(length, type)
 
     await this.redisService.hset({

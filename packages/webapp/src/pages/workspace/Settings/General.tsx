@@ -45,8 +45,8 @@ export default function WorkspaceGeneral() {
   )
 
   return (
-    <section id="general" className="border-accent-light border-b pb-10">
-      <h2 className="text-lg font-semibold">{t('settings.general.title')}</h2>
+    <section id="general" className="border-b border-[#e5e7eb] pb-10">
+      <h2 className="hf-section-title">{t('settings.general.title')}</h2>
 
       <div className="mt-4 space-y-8">
         <div className="space-y-2">
@@ -58,7 +58,7 @@ export default function WorkspaceGeneral() {
 
         <div className="space-y-2">
           <div className="space-y-1">
-            <label className="block text-sm font-medium leading-6 text-gray-900">
+            <label className="text-primary block text-sm font-medium leading-6">
               {t('settings.general.logo')}
             </label>
             <p data-slot="text" className="text-secondary text-base/5 sm:text-sm/5">

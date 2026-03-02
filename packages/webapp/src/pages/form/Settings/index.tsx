@@ -53,9 +53,9 @@ export default function FormSettings() {
       settings.active = !settings.closeForm
       delete settings.closeForm
 
-      if (helper.isValid(settings.languages)) {
-        settings.languages = settings.languages.filter((l: string) => l !== settings.locale)
-      }
+      const selectedLanguages = rcForm.getFieldValue('languages')
+      const currentLanguages = helper.isArray(selectedLanguages) ? selectedLanguages : []
+      settings.languages = currentLanguages.filter((l: string) => l !== settings.locale)
 
       await FormService.update(formId, settings)
 
@@ -129,7 +129,7 @@ export default function FormSettings() {
             <FormSettingsTranslations />
             <FormSettingsProtection />
 
-            <div className="border-accent bg-foreground sticky bottom-0 mt-10 flex items-center justify-end gap-x-4 border-t py-6">
+            <div className="border-accent bg-foreground/80 sticky bottom-0 mt-10 flex items-center justify-end gap-x-4 border-t px-4 py-4">
               {error && !loading && <div className="text-error text-sm/6">{error.message}</div>}
 
               <Button type="submit" loading={loading} disabled={isDisabled}>
