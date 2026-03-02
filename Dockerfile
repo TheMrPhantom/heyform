@@ -12,6 +12,7 @@ COPY pnpm-workspace.yaml $APP_PATH/pnpm-workspace.yaml
 COPY packages/server $APP_PATH/packages/server
 RUN mkdir -p $APP_PATH/packages/server/static/upload
 COPY packages/webapp $APP_PATH/packages/webapp
+COPY packages/form-renderer $APP_PATH/packages/form-renderer
 COPY packages/server/view/index.html $APP_PATH/packages/webapp/index.html
 
 RUN pnpm install
