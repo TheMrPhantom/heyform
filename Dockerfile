@@ -18,7 +18,6 @@ COPY packages/server/view/index.html $APP_PATH/packages/webapp/index.html
 RUN pnpm install
 RUN pnpm build:server
 RUN pnpm build:webapp
-RUN pnpm --filter ./packages/webapp export
 
 FROM node:18.20.0-alpine3.19 AS runner
 
