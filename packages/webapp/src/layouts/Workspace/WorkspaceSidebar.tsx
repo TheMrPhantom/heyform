@@ -16,7 +16,6 @@ import { cn, useParam } from '@/utils'
 import { helper } from '@heyform-inc/utils'
 
 import { Button, Tooltip } from '@/components'
-import { HELP_CENTER_URL } from '@/consts'
 import { useAppStore, useModal, useWorkspaceStore } from '@/store'
 
 import ChangelogButton from './ChangelogButton'
@@ -34,7 +33,7 @@ const RESOURCE_LINKS = [
   {
     icon: IconLocation,
     title: 'workspace.sidebar.gettingStarted',
-    href: `${HELP_CENTER_URL}/quickstart/create-a-form`
+    href: 'https://docs.heyform.net/quickstart/create-a-form'
   }
 ]
 

@@ -1,4 +1,3 @@
-import { UNSELECTABLE_FIELD_KINDS } from '@heyform-inc/shared-types-enums'
 import { IconTrash, IconUpload } from '@tabler/icons-react'
 import { useRequest } from 'ahooks'
 import { useMemo, useRef } from 'react'
@@ -6,7 +5,6 @@ import { Trans, useTranslation } from 'react-i18next'
 
 import { FormService } from '@/services'
 import { useParam } from '@/utils'
-import { flattenFields } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
 import OgIcon from '@/assets/og.svg?react'
@@ -22,19 +20,9 @@ export default function LinkSettings() {
 
   const { title, description } = useMemo(() => {
     if (form) {
-      const fieldsCount = flattenFields(form.drafts).filter(
-        f => !UNSELECTABLE_FIELD_KINDS.includes(f.kind)
-      ).length
-      let description = fieldsCount <= 1 ? `1 question` : `${fieldsCount} questions`
-
-      const timeToComplete = Math.round(1.2 * (Math.log(fieldsCount) / Math.log(2)))
-      const unit = !isNaN(timeToComplete) && timeToComplete > 1 ? 'mins' : 'min'
-
-      description += `, ${timeToComplete} ${unit} to complete`
-
       return {
-        title: form.name,
-        description
+        title: form.settings?.metaTitle ?? form.name,
+        description: form.settings?.metaDescription ?? ''
       }
     }
 
@@ -160,12 +148,7 @@ export default function LinkSettings() {
                   <OgIcon className="h-full w-full rounded-lg" />
 
                   <div className="absolute inset-0 text-black">
-                    <div className="mx-[28px] mt-[25px]">
-                      <div className="inline-block h-[28px] rounded-[6px] border border-[rgba(15,23,42,0.3)] px-[25px] text-sm font-medium leading-[28px]">
-                        {description}
-                      </div>
-                    </div>
-                    <div className="mx-[28px] flex h-[100px] items-center">
+                    <div className="mx-[28px] flex h-[130px] flex-col justify-center gap-2">
                       <div
                         className="text-[22px] font-bold leading-[26px]"
                         style={{
@@ -173,6 +156,14 @@ export default function LinkSettings() {
                         }}
                       >
                         {title}
+                      </div>
+                      <div
+                        className="text-sm leading-5 opacity-85"
+                        style={{
+                          lineClamp: 2
+                        }}
+                      >
+                        {description}
                       </div>
                     </div>
                   </div>
