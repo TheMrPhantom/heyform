@@ -18,6 +18,9 @@ COPY packages/server/view/index.html $APP_PATH/packages/webapp/index.html
 RUN pnpm install
 RUN pnpm build:server
 RUN pnpm build:webapp
+RUN mkdir -p $APP_PATH/packages/server/static
+RUN cp -R $APP_PATH/packages/webapp/dist/static/. $APP_PATH/packages/server/static/
+RUN cp $APP_PATH/packages/webapp/dist/index.html $APP_PATH/packages/server/view/index.html
 
 FROM node:18.20.0-alpine3.19 AS runner
 
