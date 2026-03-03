@@ -22,21 +22,28 @@ RUN pnpm build:webapp
 FROM node:18.20.0-alpine3.19 AS runner
 
 ARG APP_PATH=/app
-WORKDIR $APP_PATH/packages/server
+WORKDIR $APP_PATH
 
 RUN npm install -g pnpm
 RUN apk add --no-cache python3 make g++
 
-COPY --from=base $APP_PATH/packages/server/package.json ./package.json
+COPY package.json $APP_PATH/package.json
+COPY pnpm-lock.yaml $APP_PATH/pnpm-lock.yaml
+COPY pnpm-workspace.yaml $APP_PATH/pnpm-workspace.yaml
+COPY packages/server/package.json $APP_PATH/packages/server/package.json
+COPY packages/webapp/package.json $APP_PATH/packages/webapp/package.json
+COPY packages/form-renderer/package.json $APP_PATH/packages/form-renderer/package.json
 
-RUN pnpm install --prod
+RUN pnpm install --prod --frozen-lockfile --filter ./packages/server...
 
-COPY --from=base $APP_PATH/packages/server/dist ./dist
-COPY --from=base $APP_PATH/packages/server/resources ./resources
-COPY --from=base $APP_PATH/packages/server/static ./static
-COPY --from=base $APP_PATH/packages/server/view ./view
-COPY --from=base $APP_PATH/packages/server/src ./src
-COPY --from=base $APP_PATH/packages/server/tsconfig.json ./tsconfig.json
+COPY --from=base $APP_PATH/packages/server/dist $APP_PATH/packages/server/dist
+COPY --from=base $APP_PATH/packages/server/resources $APP_PATH/packages/server/resources
+COPY --from=base $APP_PATH/packages/server/static $APP_PATH/packages/server/static
+COPY --from=base $APP_PATH/packages/server/view $APP_PATH/packages/server/view
+COPY --from=base $APP_PATH/packages/server/src $APP_PATH/packages/server/src
+COPY --from=base $APP_PATH/packages/server/tsconfig.json $APP_PATH/packages/server/tsconfig.json
+
+WORKDIR $APP_PATH/packages/server
 RUN test -f ./dist/main.js || test -f ./dist/src/main.js || test -f ./dist/packages/server/main.js
 
 EXPOSE 9157

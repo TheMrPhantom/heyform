@@ -98,11 +98,5 @@
     "vite-bundle-analyzer": "^0.12.1",
     "vite-plugin-svgr": "^4.2.0",
     "vite-plugin-webfont-dl": "^3.9.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
-    }
   }
 }
