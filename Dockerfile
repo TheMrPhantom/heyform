@@ -27,15 +27,16 @@ WORKDIR $APP_PATH
 RUN npm install -g pnpm
 RUN apk add --no-cache python3 make g++
 
+COPY --from=base $APP_PATH/packages/server/package.json ./package.json
+
+RUN pnpm install --prod
+
 COPY --from=base $APP_PATH/packages/server/dist ./dist
 COPY --from=base $APP_PATH/packages/server/resources ./resources
 COPY --from=base $APP_PATH/packages/server/static ./static
 COPY --from=base $APP_PATH/packages/server/view ./view
 COPY --from=base $APP_PATH/packages/server/src ./src
 COPY --from=base $APP_PATH/packages/server/tsconfig.json ./tsconfig.json
-COPY --from=base $APP_PATH/packages/server/package.json ./package.json
-
-RUN pnpm install --prod
 
 EXPOSE 9157
 CMD ["npm", "start"]
