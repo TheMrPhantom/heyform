@@ -22,7 +22,7 @@ RUN pnpm build:webapp
 FROM node:18.20.0-alpine3.19 AS runner
 
 ARG APP_PATH=/app
-WORKDIR $APP_PATH
+WORKDIR $APP_PATH/packages/server
 
 RUN npm install -g pnpm
 RUN apk add --no-cache python3 make g++
@@ -37,6 +37,7 @@ COPY --from=base $APP_PATH/packages/server/static ./static
 COPY --from=base $APP_PATH/packages/server/view ./view
 COPY --from=base $APP_PATH/packages/server/src ./src
 COPY --from=base $APP_PATH/packages/server/tsconfig.json ./tsconfig.json
+RUN test -f ./dist/main.js
 
 EXPOSE 9157
 CMD ["npm", "start"]
