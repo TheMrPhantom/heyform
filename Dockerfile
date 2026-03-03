@@ -29,11 +29,9 @@ RUN apk add --no-cache python3 make g++
 
 COPY package.json $APP_PATH/package.json
 COPY pnpm-lock.yaml $APP_PATH/pnpm-lock.yaml
-COPY pnpm-workspace.yaml $APP_PATH/pnpm-workspace.yaml
 COPY packages/server/package.json $APP_PATH/packages/server/package.json
-COPY packages/webapp/package.json $APP_PATH/packages/webapp/package.json
-COPY packages/form-renderer/package.json $APP_PATH/packages/form-renderer/package.json
 
+RUN printf "packages:\n  - 'packages/server'\n" > $APP_PATH/pnpm-workspace.yaml
 RUN pnpm install --prod --frozen-lockfile --filter ./packages/server...
 
 COPY --from=base $APP_PATH/packages/server/dist $APP_PATH/packages/server/dist
