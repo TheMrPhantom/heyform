@@ -1,0 +1,55 @@
+version: '3.9'
+
+networks:
+  heyform-mongo:
+  heyform-keydb:
+
+services:
+  heyform:
+    image: heyform-local:test
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - keydb
+    ports:
+      - '9513:9157'
+    env_file:
+      - .env
+    environment:
+      APP_HOMEPAGE_URL: ${APP_HOMEPAGE_URL:-http://localhost:9513}
+      SESSION_KEY: ${SESSION_KEY:?SESSION_KEY is required}
+      FORM_ENCRYPTION_KEY: ${FORM_ENCRYPTION_KEY:?FORM_ENCRYPTION_KEY is required}
+      MONGO_URI: mongodb://mongo:27017/heyform
+      REDIS_HOST: keydb
+      REDIS_PORT: 6379
+    volumes:
+      # Keep uploads between restarts (covers both current static path and runtime-served path)
+      - ./assets:/app/packages/server/static/upload
+      - ./assets:/app/packages/server/uploads
+    networks:
+      - heyform-mongo
+      - heyform-keydb
+
+  mongo:
+    image: percona/percona-server-mongodb:4.4
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - heyform-mongo
+
+  keydb:
+    image: eqalpha/keydb:6.3.3
+    restart: unless-stopped
+    command: keydb-server --appendonly yes --protected-mode no
+    volumes:
+      - keydb_data:/data
+    networks:
+      - heyform-keydb
+
+volumes:
+  mongodb_data:
+  keydb_data:
