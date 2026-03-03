@@ -112,8 +112,8 @@ export const FormRenderer: FC<FormRendererProps> = ({
   reportAbuseURL,
   alwaysShowNextButton = false,
   customUrlRedirects = false,
-  enableQuestionList = false,
-  enableNavigationArrows = false,
+  enableQuestionList,
+  enableNavigationArrows,
   ssr = false,
   onSubmit
 }) => {
@@ -127,18 +127,47 @@ export const FormRenderer: FC<FormRendererProps> = ({
     () => !!(stripeApiKey && stripeAccountId),
     [stripeApiKey, stripeAccountId]
   )
+  const isQuestionListEnabled = useMemo(
+    () =>
+      !helper.isNil(enableQuestionList)
+        ? !!enableQuestionList
+        : !!form.settings?.enableQuestionList,
+    [enableQuestionList, form.settings?.enableQuestionList]
+  )
+  const isNavigationArrowsEnabled = useMemo(
+    () =>
+      !helper.isNil(enableNavigationArrows)
+        ? !!enableNavigationArrows
+        : helper.isNil(form.settings?.enableNavigationArrows)
+          ? true
+          : !!form.settings?.enableNavigationArrows,
+    [enableNavigationArrows, form.settings?.enableNavigationArrows]
+  )
   const memoState: IState = useMemo(
     () => ({
       reportAbuseURL,
       customUrlRedirects,
       alwaysShowNextButton,
-      enableQuestionList,
-      enableNavigationArrows,
+      enableQuestionList: isQuestionListEnabled,
+      enableNavigationArrows: isNavigationArrowsEnabled,
       onSubmit,
       ...initStore(form, locale, autoSave, allowPayment, ssr),
       query
     }),
-    [form, locale, autoSave, allowPayment, query]
+    [
+      reportAbuseURL,
+      customUrlRedirects,
+      alwaysShowNextButton,
+      isQuestionListEnabled,
+      isNavigationArrowsEnabled,
+      onSubmit,
+      form,
+      locale,
+      autoSave,
+      allowPayment,
+      ssr,
+      query
+    ]
   )
   const [state, dispatch] = useReducer(StoreReducer, memoState)
 

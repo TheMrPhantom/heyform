@@ -53,13 +53,21 @@ export default function FormSettings() {
       settings.active = !settings.closeForm
       delete settings.closeForm
 
-      const selectedLanguages = rcForm.getFieldValue('languages')
-      const currentLanguages = helper.isArray(selectedLanguages) ? selectedLanguages : []
-      settings.languages = currentLanguages.filter((l: string) => l !== settings.locale)
+      const currentLocale = helper.isValid(settings.locale)
+        ? settings.locale
+        : rcForm.getFieldValue('locale')
+      const currentLanguages = helper.isArray(settings.languages) ? settings.languages : []
+      const normalizedLanguages = currentLanguages.filter((l: string) => l !== currentLocale)
+      settings.languages = normalizedLanguages.length > 0 ? normalizedLanguages : null
 
       await FormService.update(formId, settings)
 
-      updateForm({ settings })
+      updateForm({
+        settings: {
+          ...settings,
+          languages: normalizedLanguages
+        }
+      })
       setDisabled(true)
     },
     {

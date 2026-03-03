@@ -755,6 +755,9 @@ button.button-icon-only {
 .heyform-block-description {
   @apply text-lg;
   color: var(--heyform-description-color);
+  b {
+    color: var(--heyform-question-color);
+  }
 }
 
 .heyform-block-title,
@@ -1615,6 +1618,7 @@ button.button-icon-only {
 .heyform-pagination .button {
   @apply px-3 py-3 md:px-2 md:py-0.5;
 
+  .button-leading,
   .button-trailing {
     @apply m-0;
     color: var(--heyform-button-text-color);
@@ -1627,6 +1631,7 @@ button.button-icon-only {
   &[disabled] {
     @apply cursor-default opacity-100;
 
+    .button-leading,
     .button-trailing {
       @apply opacity-60;
     }

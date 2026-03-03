@@ -59,7 +59,12 @@ export class UpdateFormResolver {
 
     // `pickValidValues` drops empty arrays, but we must persist language updates
     // (including clearing translations to an empty list).
-    if (Object.prototype.hasOwnProperty.call(input, 'languages')) {
+    const hasLanguagesInput =
+      Object.prototype.hasOwnProperty.call(input, 'languages') ||
+      helper.isNull(input.languages) ||
+      helper.isArray(input.languages)
+
+    if (hasLanguagesInput) {
       updates['settings.languages'] = helper.isArray(input.languages) ? input.languages : []
     }
 

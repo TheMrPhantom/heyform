@@ -149,7 +149,7 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
 
   return (
     <>
-      <link href={fontURL} rel="stylesheet" />
+      {helper.isValid(fontURL) && <link href={fontURL} rel="stylesheet" />}
       <style dangerouslySetInnerHTML={{ __html: getThemeStyle(theme, query) }} />
 
       {form.settings?.captchaKind === CaptchaKindEnum.GOOGLE_RECAPTCHA && (

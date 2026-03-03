@@ -156,6 +156,7 @@ export const WORKSPACE_RECENT_FORMS_GQL = gql`
         ipLimitTime
         enableProgress
         enableQuestionList
+        enableNavigationArrows
         locale
         languages
         enableClosedMessage
@@ -423,6 +424,7 @@ export const FORMS_GQL = gql`
         ipLimitTime
         enableProgress
         enableQuestionList
+        enableNavigationArrows
         locale
         languages
         enableClosedMessage
@@ -1413,6 +1415,7 @@ export const PUBLIC_FORM_GQL = gql`
         ipLimitTime
         enableProgress
         enableQuestionList
+        enableNavigationArrows
         locale
         languages
         enableClosedMessage

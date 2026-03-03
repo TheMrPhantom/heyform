@@ -37,6 +37,7 @@ declare global {
       geetestCaptchaId?: string
       googleRecaptchaKey?: string
       appDisableRegistration?: boolean | string
+      enableGoogleFonts?: boolean | string
       disableLoginWithApple?: boolean | string
       disableLoginWithGoogle?: boolean | string
       verifyUserEmail?: boolean | string

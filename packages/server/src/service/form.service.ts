@@ -383,6 +383,7 @@ export class FormService {
       'requirePassword',
       'enableProgress',
       'enableQuestionList',
+      'enableNavigationArrows',
       'locale',
       'languages',
       'enableClosedMessage',

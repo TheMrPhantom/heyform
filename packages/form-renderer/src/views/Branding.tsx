@@ -21,7 +21,7 @@ export const Branding: FC = () => {
         i18nKey="Made with HeyForm"
         components={{
           icon: <LogoIcon className="inline h-4 w-4" />,
-          span: <span className="font-bold" />
+          span: <span className="font-medium" />
         }}
       />
     </a>

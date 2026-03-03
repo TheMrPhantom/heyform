@@ -36,6 +36,9 @@ export const VERIFY_USER_EMAIL = helper.isTrue(
 export const APP_DISABLE_REGISTRATION = helper.isTrue(
   window.heyform?.appDisableRegistration || import.meta.env.VITE_APP_DISABLE_REGISTRATION
 )
+export const ENABLE_GOOGLE_FONTS = helper.isTrue(
+  window.heyform?.enableGoogleFonts ?? import.meta.env.VITE_ENABLE_GOOGLE_FONTS ?? 'true'
+)
 
 export const TEMPLATES_URL =
   window.heyform?.templatesURL || (import.meta.env.VITE_TEMPLATES_URL as string)
@@ -50,4 +53,8 @@ export const COOKIE_OPTIONS: AnyMap = {
   sameSite: 'strict',
   domain: COOKIE_DOMAIN,
   secure: IS_PROD
+}
+
+if (window.heyform) {
+  window.heyform.enableGoogleFonts = ENABLE_GOOGLE_FONTS
 }

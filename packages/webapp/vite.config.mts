@@ -2,16 +2,11 @@ import react from '@vitejs/plugin-react-swc'
 import { resolve } from 'path'
 import { ConfigEnv, loadEnv } from 'vite'
 import svgr from 'vite-plugin-svgr'
-import webfontDownload from 'vite-plugin-webfont-dl'
 import { analyzer } from 'vite-bundle-analyzer'
 
 export default ({ mode }: ConfigEnv) => {
   const env = loadEnv(mode, process.cwd())
-  const plugins = [
-    react(),
-    svgr(),
-    webfontDownload(['https://rsms.me/inter/inter.css'])
-  ]
+  const plugins = [react(), svgr()]
 
   if (process.env.ANALYZER) {
     plugins.push(analyzer())
