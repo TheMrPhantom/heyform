@@ -17,7 +17,8 @@ import {
 export class UserService {
   static async userDetail() {
     return apollo.query({
-      query: USER_DETAILS_GQL
+      query: USER_DETAILS_GQL,
+      fetchPolicy: 'network-only'
     })
   }
 

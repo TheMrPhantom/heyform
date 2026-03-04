@@ -32,13 +32,18 @@ export const LoginGuard: FC<LayoutProps> = ({ options, children }) => {
   const alert = useAlert()
   const router = useRouter()
   const { user, setUser, updateUser } = useUserStore()
+  const [isCheckingUser, setCheckingUser] = useState(true)
 
   useAsyncEffect(async () => {
-    const user = await UserService.userDetail()
-    setUser(user)
+    try {
+      const user = await UserService.userDetail()
+      setUser(user)
 
-    if (!user.isEmailVerified) {
-      return router.replace('/verify-email')
+      if (!user.isEmailVerified && window.location.pathname !== '/verify-email') {
+        return router.replace('/verify-email')
+      }
+    } finally {
+      setCheckingUser(false)
     }
   }, [])
 
@@ -74,6 +79,10 @@ export const LoginGuard: FC<LayoutProps> = ({ options, children }) => {
     }
   }, [options, t])
 
+  if (isCheckingUser) {
+    return null
+  }
+
   return <>{children}</>
 }
 
@@ -105,6 +114,7 @@ export const WorkspaceGuard: FC<LayoutProps> = ({ options, children }) => {
     setWorkspaces(result)
 
     if (INVITATION_URL_REGEX.test(redirectUri)) {
+      clearCookie(REDIRECT_COOKIE_NAME)
       return router.redirect(redirectUri)
     }
 

@@ -1,4 +1,5 @@
 import { useRequest } from 'ahooks'
+import { useEffect } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { UserService } from '@/services'
@@ -19,7 +20,7 @@ export default function VerifyEmail() {
 
   const router = useRouter()
   const toast = useToast()
-  const { temporaryEmail, user } = useUserStore()
+  const { temporaryEmail, user, updateUser } = useUserStore()
 
   const { loading: sendLoading, run: sendRun } = useRequest(
     async () => {
@@ -30,6 +31,7 @@ export default function VerifyEmail() {
       await UserService.emailVerificationCode()
     },
     {
+      manual: true,
       refreshDeps: [user.isEmailVerified],
       onError: err => {
         toast({
@@ -40,9 +42,18 @@ export default function VerifyEmail() {
     }
   )
 
+  useEffect(() => {
+    if (!user.isEmailVerified && !temporaryEmail) {
+      sendRun()
+    }
+  }, [sendRun, temporaryEmail, user.isEmailVerified])
+
   const { loading: verifyLoading, run: verifyRun } = useRequest(
     async (code: string) => {
       await UserService.verifyEmail(code)
+      updateUser({
+        isEmailVerified: true
+      })
       router.redirect('/')
     },
     {

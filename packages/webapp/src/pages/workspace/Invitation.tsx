@@ -3,10 +3,11 @@ import { useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { WorkspaceService } from '@/services'
-import { useParam, useRouter } from '@/utils'
+import { clearCookie, getAuthState, setCookie, useParam, useRouter } from '@/utils'
 import { helper } from '@heyform-inc/utils'
 
 import { Async, Avatar, Button, Loader } from '@/components'
+import { REDIRECT_COOKIE_NAME } from '@/consts'
 import { useWorkspaceStore } from '@/store'
 import { WorkspaceType } from '@/types'
 
@@ -21,11 +22,21 @@ export default function WorkspaceInvitation() {
 
   const { loading, error, run } = useRequest(
     async () => {
+      const redirectUri = `/workspace/${workspaceId}/invitation/${code}`
+
+      if (!getAuthState()) {
+        setCookie(REDIRECT_COOKIE_NAME, redirectUri, {})
+        return router.redirect('/login', {
+          extend: false
+        })
+      }
+
       await WorkspaceService.join(workspaceId, code)
 
       const result = await WorkspaceService.workspaces()
 
       setWorkspaces(result)
+      clearCookie(REDIRECT_COOKIE_NAME)
       router.replace(`/workspace/${workspaceId}`)
     },
     {

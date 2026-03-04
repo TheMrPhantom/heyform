@@ -105,10 +105,10 @@ const routes = [
   },
   {
     path: '/workspace/:workspaceId/invitation/:code',
-    layout: BaseLayout,
+    layout: AuthLayout,
     component: WorkspaceInvitation,
     options: {
-      loginRequired: true,
+      loginRequired: false,
       title: 'workspace.invitation.title'
     }
   },
