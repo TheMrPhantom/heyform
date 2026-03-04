@@ -94,16 +94,13 @@ export class PermissionGuard implements CanActivate {
     }
 
     const isOwner = team.ownerId === user.id
-    if (!isOwner) {
-      throw new BadRequestException("You don't have permission to access the workspace")
-    }
 
     req.team = {
       id: teamId,
       ownerId: team.ownerId,
       isOwner,
       name: team.name,
-      role: member.role,
+      role: member?.role,
       storageQuota: team.storageQuota,
       inviteCode: team.inviteCode
     }
