@@ -892,6 +892,9 @@ export class FormSettingType {
   captchaKind?: number
 
   @Field({ nullable: true })
+  googleRecaptchaKey?: string
+
+  @Field({ nullable: true })
   active?: boolean
 
   @Field({ nullable: true })

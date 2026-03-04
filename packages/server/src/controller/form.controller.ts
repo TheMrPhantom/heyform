@@ -5,7 +5,6 @@ import {
   APP_HOMEPAGE_URL,
   COOKIE_DOMAIN,
   ENABLE_GOOGLE_FONTS,
-  GEETEST_CAPTCHA_KEY,
   GOOGLE_RECAPTCHA_KEY,
   STRIPE_PUBLISHABLE_KEY
 } from '@environments'
@@ -21,7 +20,6 @@ export class FormController {
         cookieDomain: COOKIE_DOMAIN,
         enableGoogleFonts: ENABLE_GOOGLE_FONTS,
         stripePublishableKey: STRIPE_PUBLISHABLE_KEY,
-        geetestCaptchaId: GEETEST_CAPTCHA_KEY,
         googleRecaptchaKey: GOOGLE_RECAPTCHA_KEY
       }
     })

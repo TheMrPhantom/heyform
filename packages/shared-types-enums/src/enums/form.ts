@@ -17,8 +17,7 @@ export enum FormStatusEnum {
 
 export enum CaptchaKindEnum {
   NONE = 0,
-  GOOGLE_RECAPTCHA,
-  GEETEST_CAPTCHA
+  GOOGLE_RECAPTCHA
 }
 
 export enum FieldKindEnum {

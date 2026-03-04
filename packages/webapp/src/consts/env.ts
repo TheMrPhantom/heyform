@@ -19,8 +19,6 @@ export const COOKIE_DOMAIN =
 
 export const STRIPE_PUBLISHABLE_KEY =
   window.heyform?.stripePublishableKey || (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string)
-export const GEETEST_CAPTCHA_ID =
-  window.heyform?.geetestCaptchaId || (import.meta.env.VITE_GEETEST_CAPTCHA_ID as string)
 export const GOOGLE_RECAPTCHA_KEY =
   window.heyform?.googleRecaptchaKey || (import.meta.env.VITE_GOOGLE_RECAPTCHA_KEY as string)
 

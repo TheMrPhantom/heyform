@@ -541,6 +541,7 @@ export const FORM_DETAIL_GQL = gql`
       }
       settings {
         captchaKind
+        googleRecaptchaKey
         active
         enableExpirationDate
         expirationTimeZone
@@ -1397,6 +1398,7 @@ export const PUBLIC_FORM_GQL = gql`
       }
       settings {
         captchaKind
+        googleRecaptchaKey
         active
         enableExpirationDate
         expirationTimeZone

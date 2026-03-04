@@ -1,6 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { GeeTest, GeeTestValidateOptions, GeeTestValidateResponse } from 'gt4-node-sdk'
 import { Model } from 'mongoose'
 
 import { RedisService } from './redis.service'
@@ -11,8 +10,6 @@ import {
   SessionOptionsFactory
 } from '@config'
 import {
-  GEETEST_CAPTCHA_ID,
-  GEETEST_CAPTCHA_KEY,
   SESSION_KEY,
   SESSION_MAX_AGE,
   VERIFICATION_CODE_EXPIRE,
@@ -246,19 +243,5 @@ export class AuthService {
     if (expired < timestamp()) {
       throw new BadRequestException('Verification code expired')
     }
-  }
-
-  async gt4Validate(input: GeeTestValidateOptions): Promise<GeeTestValidateResponse> {
-    const gt = new GeeTest({
-      captchaId: GEETEST_CAPTCHA_ID,
-      captchaKey: GEETEST_CAPTCHA_KEY
-    })
-    const res = await gt.validate(input)
-
-    if (res.result !== 'success') {
-      throw new BadRequestException(res.reason)
-    }
-
-    return res
   }
 }

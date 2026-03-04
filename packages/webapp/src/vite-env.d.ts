@@ -14,7 +14,6 @@ declare global {
   type Timeout = ReturnType<typeof setTimeout>
 
   interface Window {
-    initGeetest4: any
     grecaptcha: any
     plausible: any
     DEVICE_INFO: any
@@ -34,7 +33,6 @@ declare global {
       websiteURL?: string
       cookieDomain?: string
       stripePublishableKey?: string
-      geetestCaptchaId?: string
       googleRecaptchaKey?: string
       appDisableRegistration?: boolean | string
       enableGoogleFonts?: boolean | string

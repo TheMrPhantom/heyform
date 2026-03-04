@@ -52,7 +52,6 @@
     "graphql-middleware": "4.0.2",
     "graphql-tools": "6.2.1",
     "graphql-type-json": "0.3.2",
-    "gt4-node-sdk": "0.0.2",
     "hbs": "4.2.0",
     "helmet": "4.1.1",
     "ioredis": "4.17.3",

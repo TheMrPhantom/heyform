@@ -14,10 +14,12 @@ import {
 import { FC, useEffect, useRef, useState } from 'react'
 
 import { EndpointService } from '../service/endpoint'
-import { geeTestToken, initGeeTest, recaptchaToken } from '../utils/captcha'
+import { recaptchaToken } from '../utils/captcha'
 import { isStripeEnabled } from '../utils/payment'
 import { Uploader } from '../utils/uploader'
 import { helper } from '@heyform-inc/utils'
+
+import { GOOGLE_RECAPTCHA_KEY } from '@/consts/env'
 
 import { PasswordCheck } from './PasswordCheck'
 
@@ -35,6 +37,92 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
   const passwordTokenRef = useRef<string>('')
   const [isPasswordChecked, setIsPasswordChecked] = useState(false)
 
+  function loadExternalScript(id: string, src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const loadedScript = document.getElementById(id) as HTMLScriptElement | null
+
+      if (loadedScript) {
+        if (loadedScript.dataset.loaded === 'true') {
+          resolve()
+          return
+        }
+
+        loadedScript.addEventListener('load', () => resolve(), { once: true })
+        loadedScript.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), {
+          once: true
+        })
+        return
+      }
+
+      const script = document.createElement('script')
+      script.id = id
+      script.src = src
+      script.async = true
+      script.defer = true
+      script.addEventListener(
+        'load',
+        () => {
+          script.dataset.loaded = 'true'
+          resolve()
+        },
+        { once: true }
+      )
+      script.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), {
+        once: true
+      })
+      document.body.appendChild(script)
+    })
+  }
+
+  async function ensureCaptchaReady() {
+    if (form.settings?.captchaKind !== CaptchaKindEnum.GOOGLE_RECAPTCHA) {
+      return
+    }
+
+    if (
+      captchaRef?.ready &&
+      (typeof captchaRef?.execute === 'function' ||
+        typeof captchaRef?.enterprise?.execute === 'function')
+    ) {
+      return
+    }
+
+    const key =
+      window.heyform?.googleRecaptchaKey ||
+      (form.settings as Any)?.googleRecaptchaKey ||
+      GOOGLE_RECAPTCHA_KEY
+
+    if (!key) {
+      throw new Error('Google reCAPTCHA key is not configured')
+    }
+
+    window.heyform = window.heyform || {}
+    window.heyform.googleRecaptchaKey = key
+
+    await loadExternalScript(
+      'google-recaptcha-sdk',
+      `https://www.google.com/recaptcha/api.js?render=${key}`
+    )
+    captchaRef = window.grecaptcha
+
+    // Some keys only work with enterprise.js. Fallback automatically.
+    if (
+      !captchaRef?.ready ||
+      (typeof captchaRef?.execute !== 'function' &&
+        typeof captchaRef?.enterprise?.execute !== 'function')
+    ) {
+      await loadExternalScript(
+        'google-recaptcha-enterprise-sdk',
+        `https://www.google.com/recaptcha/enterprise.js?render=${key}`
+      )
+      captchaRef = window.grecaptcha
+    }
+
+    if (!captchaRef?.ready) {
+      throw new Error('Google reCAPTCHA failed to initialize')
+    }
+  }
+
   async function openForm() {
     sendMessageToParent('FORM_OPENED')
     openTokenRef.current = await EndpointService.openForm(form.id)
@@ -49,15 +137,9 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
     try {
       let token: Record<string, Any> = {}
 
-      switch (form.settings?.captchaKind) {
-        case CaptchaKindEnum.GOOGLE_RECAPTCHA:
-          token.recaptchaToken = await recaptchaToken(captchaRef)
-          break
-
-        case CaptchaKindEnum.GEETEST_CAPTCHA:
-          captchaRef?.showCaptcha()
-          token = await geeTestToken(captchaRef)
-          break
+      if (form.settings?.captchaKind === CaptchaKindEnum.GOOGLE_RECAPTCHA) {
+        await ensureCaptchaReady()
+        token.recaptchaToken = await recaptchaToken(captchaRef)
       }
 
       const file = await new Uploader(form, values).start()
@@ -108,9 +190,6 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
 
       sendMessageToParent('FORM_SUBMITTED')
     } catch (err: Any) {
-      // Reset GeeTest captcha
-      captchaRef?.reset()
-
       /**
        * Throw error to let Renderer knows that there was an error.
        * If we don't do this, the form will be show as submitted
@@ -120,15 +199,7 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
   }
 
   async function initCaptcha() {
-    switch (form.settings?.captchaKind) {
-      case CaptchaKindEnum.GEETEST_CAPTCHA:
-        captchaRef = await initGeeTest()
-        break
-
-      case CaptchaKindEnum.GOOGLE_RECAPTCHA:
-        captchaRef = window.grecaptcha
-        break
-    }
+    // reCAPTCHA initializes lazily on submit.
   }
 
   useEffect(() => {
@@ -136,7 +207,7 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
 
     if (!form.suspended && form.settings?.active) {
       openForm()
-      initCaptcha()
+      initCaptcha().catch(console.error)
     }
   }, [])
 
@@ -151,16 +222,6 @@ export const Renderer: FC<RendererProps> = ({ form, query, locale, contactId }) 
     <>
       {helper.isValid(fontURL) && <link href={fontURL} rel="stylesheet" />}
       <style dangerouslySetInnerHTML={{ __html: getThemeStyle(theme, query) }} />
-
-      {form.settings?.captchaKind === CaptchaKindEnum.GOOGLE_RECAPTCHA && (
-        <script
-          src={`https://www.google.com/recaptcha/api.js?render=${window.heyform.googleRecaptchaKey}`}
-        />
-      )}
-
-      {form.settings?.captchaKind === CaptchaKindEnum.GEETEST_CAPTCHA && (
-        <script src="https://static.geetest.com/v4/gt4.js" />
-      )}
 
       {isStripeEnabled(form) && <script id="stripe" src="https://js.stripe.com/v3/" />}
 

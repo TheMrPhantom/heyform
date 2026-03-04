@@ -5,8 +5,7 @@ export const CAPTCHA_KIND_OPTIONS = [
     label: 'Disable',
     value: CaptchaKindEnum.NONE
   },
-  { label: 'Google reCaptcha', value: CaptchaKindEnum.GOOGLE_RECAPTCHA },
-  { label: 'GeeTest CAPTCHA', value: CaptchaKindEnum.GEETEST_CAPTCHA }
+  { label: 'Google reCaptcha', value: CaptchaKindEnum.GOOGLE_RECAPTCHA }
 ]
 
 export const LOCALES_OPTIONS = [

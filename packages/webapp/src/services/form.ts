@@ -75,10 +75,6 @@ export class FormService {
     hiddenFields: HiddenFieldAnswer[]
 
     recaptchaToken?: string
-
-    geetestChallenge?: string
-    geetestValidate?: string
-    geetestSeccode?: string
     partialSubmission?: boolean
   }) {
     return apollo.mutate({

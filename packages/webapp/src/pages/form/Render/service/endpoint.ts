@@ -2,15 +2,6 @@ import { HiddenFieldAnswer } from '@heyform-inc/shared-types-enums'
 
 import { axios } from '../utils/axios'
 
-const INIT_GEETEST_CAPTCHA_GQL = `query initGeetestCaptcha($input: FormDetailInput!) {
-  initGeetestCaptcha(input: $input) {
-    challenge
-    gt
-    new_captcha
-    success
-  }
-}`
-
 const OPEN_FORM_GQL = `query openForm($input: OpenFormInput!) {
   openForm(input: $input)
 }`
@@ -34,18 +25,6 @@ const COMPLETE_SUBMISSION_GQL = `mutation completeSubmission($input: CompleteSub
 }`
 
 export class EndpointService {
-  static async initGeetestCaptcha(formId: string): Promise<Record<string, Any>> {
-    const result = await axios({
-      query: INIT_GEETEST_CAPTCHA_GQL,
-      variables: {
-        input: {
-          formId
-        }
-      }
-    })
-    return result.initGeetestCaptcha
-  }
-
   static async openForm(formId: string): Promise<string> {
     const result = await axios({
       query: OPEN_FORM_GQL,
@@ -102,10 +81,6 @@ export class EndpointService {
     hiddenFields: HiddenFieldAnswer[]
     // Google reCAPTCHA token
     recaptchaToken?: string
-    // GeeTest Captcha token
-    geetestChallenge?: string
-    geetestValidate?: string
-    geetestSeccode?: string
     partialSubmission?: boolean
   }): Promise<{ clientSecret?: string }> {
     const result = await axios({

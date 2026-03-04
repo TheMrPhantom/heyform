@@ -11,6 +11,12 @@ export const ROOT_PATH = process.cwd()
 // Load environment
 loadEnv(NODE_ENV, ROOT_PATH)
 
+// When running from monorepo root (e.g. `pnpm dev`), also load package-local env files.
+const SERVER_ROOT_PATH = resolve(ROOT_PATH, 'packages/server')
+if (fs.existsSync(SERVER_ROOT_PATH)) {
+  loadEnv(NODE_ENV, SERVER_ROOT_PATH)
+}
+
 // App serve
 export const APP_LISTEN_PORT: number = +process.env.APP_LISTEN_PORT || 9157
 export const APP_LISTEN_HOSTNAME: string = process.env.APP_LISTEN_HOSTNAME || '0.0.0.0'
@@ -79,10 +85,6 @@ export const SMTP_IGNORE_CERT: boolean = helper.isTrue(process.env.SMTP_IGNORE_C
 // Google recaptcha
 export const GOOGLE_RECAPTCHA_KEY: string = process.env.GOOGLE_RECAPTCHA_KEY
 export const GOOGLE_RECAPTCHA_SECRET: string = process.env.GOOGLE_RECAPTCHA_SECRET
-
-// Geetest captcha
-export const GEETEST_CAPTCHA_ID: string = process.env.GEETEST_CAPTCHA_ID
-export const GEETEST_CAPTCHA_KEY: string = process.env.GEETEST_CAPTCHA_KEY
 
 // Akismet
 export const AKISMET_KEY: string = process.env.AKISMET_KEY

@@ -1,31 +1,12 @@
 import { CaptchaKindEnum } from '@heyform-inc/shared-types-enums'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Form, Input, Select, Switch } from '@/components'
+import { Form, Input, Switch } from '@/components'
 import { useFormStore } from '@/store'
 
 export default function FormSettingsProtection() {
   const { t } = useTranslation()
   const { tempSettings } = useFormStore()
-
-  const options = useMemo(
-    () => [
-      {
-        label: t('components.disabled'),
-        value: CaptchaKindEnum.NONE
-      },
-      {
-        label: 'Google reCaptcha',
-        value: CaptchaKindEnum.GOOGLE_RECAPTCHA
-      },
-      {
-        label: 'GeeTest CAPTCHA',
-        value: CaptchaKindEnum.GEETEST_CAPTCHA
-      }
-    ],
-    [t]
-  )
 
   return (
     <section id="protection" className="pt-10">
@@ -51,23 +32,26 @@ export default function FormSettingsProtection() {
         </div>
 
         <Form.Item
-          className="[&_[data-slot=content]]:pt-1.5 [&_[data-slot=control]]:flex-col [&_[data-slot=control]]:sm:flex-row"
+          className="[&_[data-slot=content]]:pt-1.5"
           name="captchaKind"
-          label={t('form.settings.protection.bot.headline')}
+          label="Google reCaptcha"
           description={t('form.settings.protection.bot.subHeadline')}
           isInline
         >
-          <Select
-            type="number"
-            className="w-full min-w-40 sm:w-auto [&_[data-slot=translated]]:hidden"
-            options={options}
-          />
+          {(control: Any) => (
+            <Switch
+              value={control.value === CaptchaKindEnum.GOOGLE_RECAPTCHA}
+              onChange={value =>
+                control.onChange(value ? CaptchaKindEnum.GOOGLE_RECAPTCHA : CaptchaKindEnum.NONE)
+              }
+            />
+          )}
         </Form.Item>
 
         <Form.Item
           className="[&_[data-slot=content]]:pt-1.5"
           name="filterSpam"
-          label={t('form.settings.protection.antiSpam.headline')}
+          label="Akismet"
           description={t('form.settings.protection.antiSpam.subHeadline')}
           isInline
         >

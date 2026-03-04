@@ -73,47 +73,12 @@ export class CompleteSubmissionInput {
   @IsString()
   @IsOptional()
   recaptchaToken?: string
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  lotNumber?: string
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  captchaOutput?: string
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  passToken?: string
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  genTime?: string
 }
 
 @ObjectType()
 export class CompleteSubmissionType {
   @Field({ nullable: true })
   clientSecret?: string
-}
-
-@ObjectType()
-export class InitGeetestCaptchaType {
-  @Field()
-  challenge: string
-
-  @Field()
-  gt: string
-
-  @Field()
-  new_captcha: boolean
-
-  @Field()
-  success: number
 }
 
 @ObjectType()
