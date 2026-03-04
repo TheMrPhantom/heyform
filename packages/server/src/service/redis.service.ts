@@ -107,4 +107,8 @@ export class RedisService {
   public del(key: string): Promise<number> {
     return this.redis.del(key)
   }
+
+  public ping(): Promise<'PONG'> {
+    return this.redis.ping() as Promise<'PONG'>
+  }
 }

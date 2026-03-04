@@ -1,9 +1,67 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common'
+import * as mongoose from 'mongoose'
+
+import { RedisService } from '@service'
+
+interface HealthResponse {
+  status: 'ok' | 'down'
+  service: 'heyform-server'
+  timestamp: string
+  uptime: number
+}
+
+interface ReadinessResponse extends HealthResponse {
+  checks: {
+    mongo: 'up' | 'down'
+    redis: 'up' | 'down'
+  }
+}
 
 @Controller()
 export class HealthController {
+  constructor(private readonly redisService: RedisService) {}
+
   @Get('/health')
-  index() {
-    return 'OK'
+  index(): HealthResponse {
+    return {
+      status: 'ok',
+      service: 'heyform-server',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime())
+    }
+  }
+
+  @Get('/health/ready')
+  async ready(): Promise<ReadinessResponse> {
+    let mongo: 'up' | 'down' = 'down'
+    let redis: 'up' | 'down' = 'down'
+
+    if (mongoose.connection.readyState === 1) {
+      mongo = 'up'
+    }
+
+    try {
+      const pong = await this.redisService.ping()
+      if (pong === 'PONG') {
+        redis = 'up'
+      }
+    } catch (_) {}
+
+    const response: ReadinessResponse = {
+      status: mongo === 'up' && redis === 'up' ? 'ok' : 'down',
+      service: 'heyform-server',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      checks: {
+        mongo,
+        redis
+      }
+    }
+
+    if (response.status !== 'ok') {
+      throw new ServiceUnavailableException(response)
+    }
+
+    return response
   }
 }
