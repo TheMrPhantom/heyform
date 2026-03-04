@@ -1,5 +1,6 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common'
-import * as mongoose from 'mongoose'
+import { InjectConnection } from '@nestjs/mongoose'
+import { Connection } from 'mongoose'
 
 import { RedisService } from '@service'
 
@@ -19,7 +20,10 @@ interface ReadinessResponse extends HealthResponse {
 
 @Controller()
 export class HealthController {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    @InjectConnection() private readonly mongoConnection: Connection
+  ) {}
 
   @Get('/health')
   index(): HealthResponse {
@@ -36,7 +40,7 @@ export class HealthController {
     let mongo: 'up' | 'down' = 'down'
     let redis: 'up' | 'down' = 'down'
 
-    if (mongoose.connection.readyState === 1) {
+    if (this.mongoConnection.readyState === 1) {
       mongo = 'up'
     }
 
