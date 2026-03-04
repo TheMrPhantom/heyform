@@ -38,7 +38,7 @@ export class ChangeEmailCodeResolver {
     //
 
     const key = `verify_email:${user.id}:${input.email}`
-    const code = await this.authService.getVerificationCode(key)
+    const code = await this.authService.getVerificationCodeWithRateLimit(key)
 
     this.mailService.emailVerificationRequest(input.email, code)
 

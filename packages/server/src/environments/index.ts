@@ -130,6 +130,10 @@ export const FORM_REPORT_RATE: string = process.env.FORM_REPORT_RATE || '5s'
 // Verification code
 export const VERIFICATION_CODE_EXPIRE: string = process.env.VERIFICATION_CODE_EXPIRE || '10m'
 export const VERIFICATION_CODE_LIMIT: number = +process.env.VERIFICATION_CODE_LIMIT || 5
+export const VERIFY_EMAIL_RESEND_COOLDOWN: string =
+  process.env.VERIFY_EMAIL_RESEND_COOLDOWN || '60s'
+export const VERIFY_EMAIL_RESEND_DAILY_LIMIT: number =
+  +process.env.VERIFY_EMAIL_RESEND_DAILY_LIMIT || 20
 
 // Account Deletion
 export const ACCOUNT_DELETION_SCHEDULE_INTERVAL: string =

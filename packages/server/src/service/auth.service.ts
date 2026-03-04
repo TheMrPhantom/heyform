@@ -13,7 +13,9 @@ import {
   SESSION_KEY,
   SESSION_MAX_AGE,
   VERIFICATION_CODE_EXPIRE,
-  VERIFICATION_CODE_LIMIT
+  VERIFICATION_CODE_LIMIT,
+  VERIFY_EMAIL_RESEND_COOLDOWN,
+  VERIFY_EMAIL_RESEND_DAILY_LIMIT
 } from '@environments'
 import { helper, hs, isDateExpired, parseNumber, random, timestamp } from '@heyform-inc/utils'
 import { UserActivityKindEnum, UserActivityModel } from '@model'
@@ -224,6 +226,46 @@ export class AuthService {
         field: fields.splice(0, count - VERIFICATION_CODE_LIMIT)
       })
     }
+
+    return code
+  }
+
+  async getVerificationCodeWithRateLimit(key: string): Promise<string> {
+    const cooldownKey = `cooldown:${key}`
+    const dailyLimitKey = `limit:day:${key}`
+    const now = timestamp()
+    const cooldownMs = hs(VERIFY_EMAIL_RESEND_COOLDOWN)
+    const dailyCount = parseNumber(await this.redisService.get(dailyLimitKey), 0)
+
+    if (dailyCount >= VERIFY_EMAIL_RESEND_DAILY_LIMIT) {
+      throw new ForbiddenException('Too many code emails sent today. Please try again later.')
+    }
+
+    const cooldownUntil = parseNumber(await this.redisService.get(cooldownKey), 0)
+
+    if (cooldownUntil > now) {
+      const waitSeconds = Math.ceil((cooldownUntil - now) / 1000)
+      throw new ForbiddenException(
+        `Please wait ${waitSeconds} seconds before requesting another code email.`
+      )
+    }
+
+    const code = await this.getVerificationCode(key)
+
+    if (dailyCount > 0) {
+      await this.redisService.incr(dailyLimitKey)
+    } else {
+      await this.redisService.multi([
+        ['incr', dailyLimitKey],
+        ['expire', dailyLimitKey, hs('1d')]
+      ])
+    }
+
+    await this.redisService.set({
+      key: cooldownKey,
+      value: now + cooldownMs,
+      duration: VERIFY_EMAIL_RESEND_COOLDOWN
+    })
 
     return code
   }
