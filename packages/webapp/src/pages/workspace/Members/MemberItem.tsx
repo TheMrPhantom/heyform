@@ -3,7 +3,7 @@ import { FC, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { WorkspaceService } from '@/services'
-import { timeFromNow } from '@/utils'
+import { timeFromNow, useRouter } from '@/utils'
 
 import { Avatar, Button, Dropdown, Tooltip, useAlert } from '@/components'
 import { useUserStore, useWorkspaceStore } from '@/store'
@@ -13,6 +13,7 @@ const MemberItem: FC<{ member: MemberType }> = ({ member }) => {
   const { t, i18n } = useTranslation()
 
   const alert = useAlert()
+  const router = useRouter()
   const { workspace, setWorkspaces, setMembers, removeMember, deleteWorkspace } =
     useWorkspaceStore()
   const { user } = useUserStore()
@@ -89,6 +90,7 @@ const MemberItem: FC<{ member: MemberType }> = ({ member }) => {
         fetch: async () => {
           await WorkspaceService.leave(workspace.id)
           deleteWorkspace(workspace.id)
+          router.replace('/')
         }
       })
     }
@@ -145,7 +147,7 @@ const MemberItem: FC<{ member: MemberType }> = ({ member }) => {
 
   return (
     <tr className="hover:bg-primary/[2.5%]">
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">
         <div className="flex items-center gap-4">
           <Avatar
             className="flex-shrink-0"
@@ -165,15 +167,15 @@ const MemberItem: FC<{ member: MemberType }> = ({ member }) => {
         </div>
       </td>
 
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">
         {member.isOwner ? t('members.owner') : t('members.member')}
       </td>
 
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">
         {member.lastSeenAt ? timeFromNow(member.lastSeenAt, i18n.language) : ''}
       </td>
 
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">{Action}</td>
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">{Action}</td>
     </tr>
   )
 }
@@ -181,7 +183,7 @@ const MemberItem: FC<{ member: MemberType }> = ({ member }) => {
 const Skeleton = () => {
   return (
     <tr>
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">
         <div className="flex items-center gap-4">
           <div className="skeleton h-10 w-10 rounded-full"></div>
           <div>
@@ -195,19 +197,19 @@ const Skeleton = () => {
         </div>
       </td>
 
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">
         <div className="py-[0.3125rem]">
           <div className="skeleton h-3.5 w-36 rounded-sm"></div>
         </div>
       </td>
 
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1">
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1">
         <div className="py-[0.3125rem]">
           <div className="skeleton h-3.5 w-36 rounded-sm"></div>
         </div>
       </td>
 
-      <td className="border-accent border-b p-4 sm:first:pl-1 sm:last:pr-1"></td>
+      <td className="p-4 sm:first:pl-1 sm:last:pr-1"></td>
     </tr>
   )
 }

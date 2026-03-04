@@ -1,9 +1,9 @@
 import { LayoutProps } from '@heyooo-inc/react-router'
-import { IconChevronLeft, IconMenu } from '@tabler/icons-react'
+import { IconMenu } from '@tabler/icons-react'
 import { useAsyncEffect } from 'ahooks'
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 
 import { UserService, WorkspaceService } from '@/services'
 import { clearCookie, cn, getCookie, useParam, useRouter } from '@/utils'
@@ -250,13 +250,7 @@ const LayoutComponent: FC<LayoutProps> = ({ options, children }) => {
       <BaseLayout>
         <div className="flex flex-grow items-center justify-center">
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-semibold">{t('workspace.notExist')}</h1>
-            <p className="flex items-center justify-center">
-              <Link to="/" className="flex items-center gap-1 text-sm/6 hover:underline">
-                <IconChevronLeft className="h-5 w-5" />
-                <span>{t('workspace.backHome')}</span>
-              </Link>
-            </p>
+            <h1 className="mb-4 text-2xl font-semibold">{t('workspace.noAccess')}</h1>
           </div>
         </div>
       </BaseLayout>
