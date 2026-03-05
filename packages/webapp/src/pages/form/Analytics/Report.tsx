@@ -130,11 +130,11 @@ export default function FormAnalyticsReport() {
 
   return (
     <>
-      <div className="mt-12 flex items-center justify-between">
+      <div className="ml-6 mt-12 flex items-center justify-between">
         <h2 className="hf-section-title">{t('form.analytics.report.headline')}</h2>
       </div>
 
-      <div className="hf-card mt-4 p-6">
+      <div className="p-6">
         <div className="heyform-report">
           <ReportList />
         </div>

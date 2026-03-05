@@ -1,11 +1,9 @@
 import {
   IconArrowLeft,
   IconFolder,
-  IconHelp,
   IconPlus,
   IconSearch,
-  IconSquareRotated,
-  IconStack2
+  IconSquareRotated
 } from '@tabler/icons-react'
 import { useRequest } from 'ahooks'
 import { Command } from 'cmdk'
@@ -17,7 +15,7 @@ import { cn, useParam, useRouter } from '@/utils'
 import { helper, toJSON } from '@heyform-inc/utils'
 
 import { Button, Loader, Modal } from '@/components'
-import { HELP_CENTER_URL, TEMPLATES_URL } from '@/consts'
+import { HELP_CENTER_URL } from '@/consts'
 import { useAppStore, useModal, useWorkspaceStore } from '@/store'
 
 interface GroupType {
@@ -110,18 +108,6 @@ const SearchModalComponent = () => {
             title: t('dashboard.search.newProject')
           },
           { value: 'newForm', icon: IconPlus, title: t('dashboard.search.newForm') }
-        ]
-      },
-      {
-        type: 'navigation',
-        heading: t('dashboard.search.navigation'),
-        items: [
-          {
-            value: TEMPLATES_URL,
-            icon: IconStack2,
-            title: t('workspace.sidebar.template')
-          },
-          { value: HELP_CENTER_URL, icon: IconHelp, title: t('workspace.sidebar.help') }
         ]
       }
     ],

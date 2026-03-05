@@ -239,7 +239,7 @@ export default function FormSubmissions() {
 
   return (
     <>
-      <div className={cn(isMaximized ? 'bg-foreground fixed inset-0 p-6' : 'mt-6')}>
+      <div className={cn(isMaximized ? 'bg-foreground fixed inset-0 p-6' : 'mt-6 px-6')}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-x-2.5">
             <Select
@@ -323,7 +323,7 @@ export default function FormSubmissions() {
             columns={columns}
             loader={
               <Repeat count={20}>
-                <div className="flex h-11 items-center gap-x-8 border-b border-[#e5e7eb] px-4">
+                <div className="border-accent-light flex h-11 items-center gap-x-8 border-b px-4">
                   <div className="skeleton h-4 w-4 rounded-md" />
                   <div className="skeleton h-4 w-20 rounded-md" />
                   <div className="skeleton h-4 w-60 rounded-md" />

@@ -1294,6 +1294,11 @@ button.connect-stripe {
 
 
 .form-preview {
+  .form-preview-viewport,
+  .form-preview-renderer {
+    @apply relative h-full w-full;
+  }
+
   .heyform-body {
     @apply lg:rounded-lg;
   }
@@ -1308,11 +1313,21 @@ button.connect-stripe {
 }
 
 .form-preview-mobile {
-  @apply mx-auto py-16;
-  max-width: 22.5rem;
+  @apply flex items-center justify-center;
 
   &.template-preview {
     @apply py-0;
+  }
+
+  .form-preview-viewport {
+    @apply relative overflow-hidden;
+    width: min(100%, 22.5rem);
+    height: min(100%, 46rem);
+    max-height: calc(100vh - 8rem);
+  }
+
+  .form-preview-renderer {
+    @apply relative h-full w-full overflow-hidden;
   }
 
   .heyform-root {
@@ -1338,8 +1353,35 @@ button.connect-stripe {
     @apply rounded-b-none;
   }
 
+  .heyform-block.heyform-block-float_left,
+  .heyform-block.heyform-block-split_left,
+  .heyform-block.heyform-block-float_right,
+  .heyform-block.heyform-block-split_right {
+    left: 0 !important;
+    right: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+
   .heyform-multiple-choice .heyform-radio-group.heyform-radio-group-horizontal {
     @apply flex-col;
+  }
+}
+
+.builder-preview-modal {
+  .form-preview-mobile {
+    @apply p-4;
+
+    .form-preview-viewport {
+      @apply rounded-xl shadow-lg;
+      max-height: calc(100vh - 10rem);
+    }
+
+    .heyform-root {
+      @apply rounded-none shadow-none;
+    }
   }
 }
 
@@ -1383,9 +1425,9 @@ button.connect-stripe {
   --heyform-report-question: rgb(9, 9, 11);
   --heyform-report-question-a60: rgba(9, 9, 11, 0.6);
   --heyform-report-question-a05: rgba(9, 9, 11, 0.05);
-  --heyform-report-chart: rgb(37, 99, 235);
-  --heyform-report-chart-a15: rgba(37, 99, 235, 0.15);
-  --heyform-report-chart-a025: rgba(37, 99, 235, 0.025);
+  --heyform-report-chart: rgb(18, 107, 243);
+  --heyform-report-chart-a15: rgba(18, 107, 243, 0.15);
+  --heyform-report-chart-a025: rgba(18, 107, 243, 0.025);
   --heyform-report-button-text: rgb(255, 255, 255);
 }
 

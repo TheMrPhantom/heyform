@@ -58,7 +58,7 @@ const WorkspaceSidebarComponent = () => {
   const { workspace } = useWorkspaceStore()
 
   return (
-    <div className="hf-sidebar-surface max-lg:bg-foreground flex h-full flex-col max-lg:rounded-lg max-lg:border">
+    <div className="hf-sidebar-surface max-lg:bg-background flex h-full flex-col max-lg:rounded-lg max-lg:border">
       <div className="p-4">
         <WorkspaceSwitcher />
       </div>
@@ -125,7 +125,7 @@ const WorkspaceSidebarComponent = () => {
             </nav>
           ) : (
             <div className="px-3 sm:px-2">
-              <div className="text-secondary rounded-md border border-dashed border-[#e5e7eb] bg-[#f8fafc] p-2 text-xs">
+              <div className="text-secondary border-accent-light rounded-md border border-dashed bg-[#f8fafc] p-2 text-xs">
                 {t('workspace.sidebar.noProjects')}
               </div>
             </div>
@@ -166,7 +166,7 @@ export const WorkspaceSidebarModal = () => {
     <Root open={isOpen} onOpenChange={onOpenChange}>
       <Portal>
         <Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-10 bg-black/60" />
-        <Content className="bg-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-left-0 data-[state=open]:slide-in-from-left-[80%] fixed bottom-2 left-2 top-2 z-10 w-72 rounded-lg border border-[#e5e7eb] shadow-sm duration-200">
+        <Content className="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-left-0 data-[state=open]:slide-in-from-left-[80%] border-accent-light fixed bottom-2 left-2 top-2 z-10 w-72 rounded-lg border shadow-sm duration-200">
           <Title>
             <VisuallyHidden />
           </Title>

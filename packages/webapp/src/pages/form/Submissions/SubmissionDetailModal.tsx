@@ -1,11 +1,11 @@
 import { FieldKindEnum, FormField } from '@heyform-inc/shared-types-enums'
-import { IconCalendar, IconDots, IconPrinter } from '@tabler/icons-react'
+import { IconCalendar, IconPrinter } from '@tabler/icons-react'
 import { FC, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { formatDay, unixDate } from '@/utils'
 
-import { Button, Dropdown, Modal, TableRef, TableState, Tooltip } from '@/components'
+import { Button, Modal, TableRef, TableState } from '@/components'
 import { useModal } from '@/store'
 import { SubmissionType } from '@/types'
 
@@ -30,9 +30,9 @@ const SubmissionItem: FC<SubmissionItemProps> = ({ submission, field }) => {
   const answer = submission.answers.find(answer => answer.id === field.id)
 
   return (
-    <div className="grid grid-cols-1 gap-5 pt-4 text-sm/6 sm:grid-cols-[min(50%,theme(spacing.80))_auto]">
+    <div className="space-y-3 pt-4 text-sm/6">
       <SubmissionHeaderCell
-        className="text-secondary items-start gap-x-2 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:w-5 [&_[data-slot=label]]:text-wrap [&_[data-slot=question-icon]]:h-6 [&_[data-slot=question-icon]]:w-6"
+        className="text-secondary items-start gap-x-2 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:w-5 [&_[data-slot=label]]:text-wrap [&_[data-slot=label]]:text-base/6 [&_[data-slot=label]]:font-medium [&_[data-slot=question-icon]]:h-6 [&_[data-slot=question-icon]]:w-6"
         field={field}
       />
       <div className="min-w-0 flex-1">
@@ -61,19 +61,8 @@ const SubmissionDetail: FC<SubmissionDetailProps> = () => {
     }
   }, [i18n.language, payload?.fields, payload?.submission])
 
-  const options = [
-    {
-      value: 'print',
-      icon: <IconPrinter className="h-5 w-5" />,
-      label: 'components.print'
-    }
-  ]
-
-  async function handleClick(value: string) {
-    switch (value) {
-      case 'print':
-        return window.print()
-    }
+  function handlePrint() {
+    window.print()
   }
 
   return (
@@ -84,7 +73,7 @@ const SubmissionDetail: FC<SubmissionDetailProps> = () => {
             {t('form.submissions.detail.headline')}
           </h1>
 
-          <div className="mt-2 flex flex-wrap gap-4">
+          <div className="mt-4 flex flex-wrap gap-4">
             <span className="text-primary flex items-center gap-3 text-base/6 sm:text-sm/6">
               <IconCalendar className="text-secondary h-4 w-4" />
               <span>{submitDate}</span>
@@ -111,28 +100,14 @@ const SubmissionDetail: FC<SubmissionDetailProps> = () => {
           {/*  <IconChevronDown className="h-5 w-5" />*/}
           {/*</Button.Ghost>*/}
 
-          <Dropdown
-            contentProps={{
-              className:
-                'min-w-36 [&_[data-value=delete]]:text-error [&_[data-value=trash]]:text-error',
-              side: 'bottom',
-              sideOffset: 8,
-              align: 'end'
-            }}
-            options={options}
-            multiLanguage
-            onClick={handleClick}
-          >
-            <Button.Link size="sm" className="data-[state=open]:bg-accent-light" iconOnly>
-              <Tooltip label={t('form.submissions.detail.menuTip')}>
-                <IconDots className="h-5 w-5" />
-              </Tooltip>
-            </Button.Link>
-          </Dropdown>
+          <Button.Ghost size="sm" onClick={handlePrint}>
+            <IconPrinter className="h-5 w-5" />
+            <span>{t('components.print')}</span>
+          </Button.Ghost>
         </div>
       </div>
 
-      <div className="scrollbar flex-1 overflow-y-auto px-6 pb-6">
+      <div className="scrollbar flex-1 overflow-y-auto px-6 pb-12">
         <div className="divide-accent-light space-y-4 divide-y">
           {fields.map(field => (
             <SubmissionItem key={field.id} submission={payload?.submission} field={field} />
@@ -156,7 +131,7 @@ export default function SubmissionDetailModal({ onClose }: SubmissionDetailProps
     <Modal
       open={isOpen}
       contentProps={{
-        className: 'max-w-6xl h-[80vh] !p-0'
+        className: 'max-w-2xl !p-0'
       }}
       onOpenChange={handleOpenChange}
     >

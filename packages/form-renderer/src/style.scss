@@ -548,6 +548,9 @@ button.button-icon-only {
 .heyform-root {
   background-color: var(--heyform-background-color);
   --heyform-form-max-width: 1120px;
+  --heyform-question-transition-duration: 1000ms;
+  --heyform-question-transition-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --heyform-question-transition-distance: 100vh;
 }
 
 .heyform-root-android {
@@ -600,6 +603,11 @@ button.button-icon-only {
 
 .heyform-body-active {
   z-index: 8;
+}
+
+.heyform-body-leaving {
+  pointer-events: none;
+  z-index: 7;
 }
 
 .heyform-block-container {
@@ -687,8 +695,10 @@ button.button-icon-only {
   @apply relative overflow-x-hidden px-6 md:px-20;
   @extend .heyform-scrollbar;
   transition:
-    transform 500ms ease 0s,
-    opacity 200ms ease 0s;
+    transform var(--heyform-question-transition-duration) var(--heyform-question-transition-easing)
+      0s,
+    opacity var(--heyform-question-transition-duration) var(--heyform-question-transition-easing)
+      0s;
   will-change: transform, opacity;
   z-index: 6;
 
@@ -709,24 +719,52 @@ button.button-icon-only {
   }
 }
 
-.heyform-block-previous {
-  .heyform-scroll-wrapper {
-    opacity: 0;
-    transform: translateY(-100vh);
-  }
-}
-
-.heyform-block-next {
-  .heyform-scroll-wrapper {
-    opacity: 0;
-    transform: translateY(100vh);
-  }
-}
-
-.heyform-block-entered {
+.heyform-block-entered,
+.heyform-block-leaving {
   .heyform-scroll-wrapper {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.heyform-block-entering.heyform-block-direction-next {
+  .heyform-scroll-wrapper {
+    opacity: 0;
+    transform: translate3d(0, var(--heyform-question-transition-distance), 0);
+  }
+}
+
+.heyform-block-entering.heyform-block-direction-previous {
+  .heyform-scroll-wrapper {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--heyform-question-transition-distance) * -1), 0);
+  }
+}
+
+.heyform-block-leaving-active.heyform-block-direction-next {
+  .heyform-scroll-wrapper {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--heyform-question-transition-distance) * -1), 0);
+  }
+}
+
+.heyform-block-leaving-active.heyform-block-direction-previous {
+  .heyform-scroll-wrapper {
+    opacity: 0;
+    transform: translate3d(0, var(--heyform-question-transition-distance), 0);
+  }
+}
+
+.heyform-block-inactive {
+  .heyform-scroll-wrapper {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heyform-scroll-wrapper {
+    transition-duration: 1ms;
   }
 }
 

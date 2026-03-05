@@ -261,7 +261,7 @@ const LayoutComponent: FC<LayoutProps> = ({ options, children }) => {
     <>
       <div
         className={cn(
-          'bg-background relative isolate flex min-h-svh w-full max-lg:flex-col',
+          'relative isolate flex min-h-svh w-full max-lg:flex-col',
           {
             '[&_[data-slot=layout-main]]:pt-16 [&_[data-slot=layout-main]]:lg:pt-16 [&_[data-slot=layout-sidebar]]:top-16': false
           },
@@ -270,7 +270,10 @@ const LayoutComponent: FC<LayoutProps> = ({ options, children }) => {
       >
         <WorkspaceSidebar />
 
-        <main className="flex flex-1 flex-col lg:min-w-0 lg:pl-64" data-slot="layout-main">
+        <main
+          className="bg-foreground flex flex-1 flex-col lg:min-w-0 lg:pl-64"
+          data-slot="layout-main"
+        >
           <div className="grow" data-slot="layout-container">
             <div className="hf-page-shell flex min-h-full flex-col" data-slot="layout-inner">
               <div className="mb-6 flex items-center justify-between lg:hidden">

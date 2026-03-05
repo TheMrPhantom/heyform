@@ -45,7 +45,7 @@ export default function RecentForms() {
       fetch={fetch}
       refreshDeps={[workspaceId]}
       loader={
-        <div className="hf-card mt-4 divide-y divide-[#e5e7eb]">
+        <div className="mt-4">
           <Repeat count={3}>
             <FormItem.Skeleton />
           </Repeat>
@@ -62,7 +62,7 @@ export default function RecentForms() {
         </div>
       )}
     >
-      <div className="hf-card mt-4 divide-y divide-[#e5e7eb]">
+      <div className="mt-4">
         {data.map(f => (
           <FormItem key={f.id} form={f} />
         ))}

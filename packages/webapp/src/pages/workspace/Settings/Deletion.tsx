@@ -11,15 +11,16 @@ export default function WorkspaceDeletion() {
 
   return (
     <section id="deletion" className="pt-10">
-      <h2 className="hf-section-title">{t('settings.deletion.title')}</h2>
-      <p data-slot="text" className="text-secondary mt-1 text-base/5 sm:text-sm/5">
-        {t('settings.deletion.description')}
-      </p>
-
-      <div className="mt-3">
+      <div className="flex items-end justify-between gap-6">
+        <div>
+          <h2 className="hf-section-title">{t('settings.deletion.title')}</h2>
+          <p data-slot="text" className="text-secondary mt-1 text-base/5 sm:text-sm/5">
+            {t('settings.deletion.description')}
+          </p>
+        </div>
         <Button.Ghost
           size="md"
-          className="bg-error text-primary-light hover:bg-error/70 dark:text-primary"
+          className="border-error/40 bg-error/10 text-error hover:bg-error/15 border"
           onClick={() => openModal('WorkspaceDeletionModal', workspace)}
         >
           {t('settings.deletion.button')}

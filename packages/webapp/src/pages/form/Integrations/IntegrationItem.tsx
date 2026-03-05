@@ -99,7 +99,7 @@ const IntegrationItem: FC<IntegrationItemProps> = ({ app }) => {
   }, [handleConnect, t, deleteLoading])
 
   return (
-    <li className="border-input cursor-default rounded-lg border px-4 py-6 text-sm">
+    <li className="hf-card border-input cursor-default rounded-lg border px-6 py-6 text-sm">
       <div className="flex items-center justify-between">
         {!hasIconError && helper.isValid(app.icon) ? (
           <Image

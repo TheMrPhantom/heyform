@@ -1,5 +1,5 @@
 export default {
-  'Made with HeyForm': '采用 <icon></icon> <span>HeyForm</span>',
+  'Made with HeyForm': '使用 <icon></icon> <span>HeyForm</span> 创建表单',
   'This field is required': '此字段是必需的',
   'File type is not supported': '不支持的文件类型',
   "File size can't exceed {{size}}": '文件大小不能超过{{size}}',
@@ -65,7 +65,7 @@ export default {
   'Name on card': '卡上的姓名',
   'Card number': '卡号',
   'Expiry date': '到期日期',
-  '{{number}}% answered': '已回答{{number}}%',
+  '{{number}}% answered': '已回答 {{number}}%',
   'Please enter a valid mobile phone number': '请输入有效的手机号码',
   'Please enter a valid email address': '请输入有效的电子邮件地址',
   'Please enter a valid url': '请输入有效的网址',

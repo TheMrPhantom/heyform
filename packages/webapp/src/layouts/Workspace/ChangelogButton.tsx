@@ -26,13 +26,9 @@ export default function ChangelogButton() {
   }
 
   return (
-    <div
-      role="button"
-      className="hover:bg-accent-light flex w-full items-center rounded-lg px-2.5 py-2.5 text-left text-sm font-medium sm:px-1.5 sm:py-1.5 lg:py-2"
-      onClick={handleClick}
-    >
+    <div role="button" className="hf-sidebar-link" onClick={handleClick}>
       <div className="flex flex-1 items-center gap-3">
-        <IconGift className="stroke-secondary group-hover:stroke-primary h-5 w-5" />
+        <IconGift className="stroke-secondary group-hover:stroke-primary h-4 w-4" />
         <span className="truncate">{t('workspace.sidebar.whatsNew')}</span>
       </div>
 

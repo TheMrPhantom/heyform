@@ -78,9 +78,9 @@ export default function FormAnalyticsOverview() {
   return (
     <>
       <div className="mt-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <h2 className="hf-section-title">{t('dashboard.overview')}</h2>
+        <h2 className="hf-section-title ml-6">{t('dashboard.overview')}</h2>
         <Select
-          className="w-full sm:w-40"
+          className="mr-6 w-full sm:w-40"
           value={range}
           options={ANALYTIC_RANGES}
           placeholder={t('form.analytics.7d')}
@@ -90,7 +90,7 @@ export default function FormAnalyticsOverview() {
         />
       </div>
 
-      <div className="mt-4 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 grid gap-6 px-6 sm:grid-cols-2 xl:grid-cols-4">
         <div className="hf-card p-5">
           <div className="hf-label-muted">{t('form.analytics.views')}</div>
           <Skeleton

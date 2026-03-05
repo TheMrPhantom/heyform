@@ -31,7 +31,7 @@ export default function WorkspaceBranding() {
   )
 
   return (
-    <section id="branding" className="border-b border-[#e5e7eb] py-10">
+    <section id="branding" className="border-accent-light border-b py-10">
       <h2 className="hf-section-title">{t('settings.branding.title')}</h2>
 
       <div className="mt-4 space-y-8">

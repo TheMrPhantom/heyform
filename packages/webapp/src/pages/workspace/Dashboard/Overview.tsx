@@ -22,7 +22,7 @@ export default function Overview() {
   )
 
   return (
-    <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="ml-6 mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {/* Forms */}
       <div className="hf-card p-5">
         <div className="hf-label-muted">{t('dashboard.forms')}</div>

@@ -30,6 +30,7 @@ module.exports = {
           DEFAULT: 'rgba(var(--hf-accent))',
           light: 'rgba(var(--hf-accent-light))'
         },
+        brand: 'rgba(var(--hf-brand))',
         error: 'rgba(var(--hf-error))'
       },
       screens: {

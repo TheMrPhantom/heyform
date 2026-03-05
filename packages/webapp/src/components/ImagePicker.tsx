@@ -52,7 +52,7 @@ export const ImageFormPicker: FC<ImageFormPickerProps> = ({
   const { t } = useTranslation()
 
   return (
-    <div className={cn('flex items-center gap-x-3', className)}>
+    <div className={cn('flex w-full items-center gap-x-3', className)}>
       <Avatar src={value} fallback={fallback} resize={resize} data-slot="avatar" />
       <ImagePicker tabs={tabs} {...restProps}>
         <Button.Ghost size="sm">{t('components.change')}</Button.Ghost>

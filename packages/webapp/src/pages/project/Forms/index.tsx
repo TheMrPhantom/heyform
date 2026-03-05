@@ -60,7 +60,7 @@ export default function ProjectForms() {
         </div>
       )}
     >
-      <div className="hf-card mt-4 divide-y divide-[#e5e7eb]">
+      <div className="mt-4">
         {forms.map(f => (
           <FormItem key={f.id} form={f} onChange={handleChange} />
         ))}

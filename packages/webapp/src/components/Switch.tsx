@@ -23,7 +23,7 @@ export const Switch: FC<SwitchProps> = ({ className, disabled, loading, value, o
     <div className={cn('relative flex items-center', className)}>
       <button
         className={cn(
-          'bg-primary/20 data-[checked=true]:bg-primary group isolate inline-flex h-6 w-10 cursor-pointer rounded-full p-[3px] ring-1 ring-inset ring-black/5 focus:outline-none disabled:pointer-events-none disabled:cursor-default sm:h-5 sm:w-8',
+          'bg-brand/20 data-[checked=true]:bg-brand group isolate inline-flex h-6 w-10 cursor-pointer rounded-full p-[3px] ring-1 ring-inset ring-black/5 focus:outline-none disabled:pointer-events-none disabled:cursor-default sm:h-5 sm:w-8',
           {
             'opacity-0': loading
           }

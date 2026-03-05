@@ -94,65 +94,90 @@ const UserAccount = () => {
   }
 
   return (
-    <div className="mt-4 space-y-8">
-      <div className="space-y-2">
-        <div className="space-y-1">
-          <div className="block text-sm font-medium leading-6 text-gray-900">
-            {t('user.avatar.headline')}
+    <div className="mt-4 space-y-6">
+      <section className="border-accent-light border-b pb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="md:max-w-sm">
+            <h3 className="text-sm font-medium leading-6">{t('user.avatar.headline')}</h3>
           </div>
-          <p data-slot="text" className="text-secondary text-base/5 sm:text-sm/5">
-            {t('user.avatar.subHeadline')}
-          </p>
+          <div className="md:w-80">
+            <p data-slot="text" className="text-secondary text-sm/5 sm:text-xs/5">
+              {t('user.avatar.subHeadline')}
+            </p>
+            <ImageFormPicker
+              className="mt-4"
+              value={user?.avatar}
+              fallback={user?.name}
+              onChange={handleAvatarChange}
+            />
+          </div>
         </div>
-        <ImageFormPicker value={user?.avatar} fallback={user?.name} onChange={handleAvatarChange} />
-      </div>
+      </section>
 
-      <div className="space-y-1">
-        <label htmlFor="name" className="text-primary block text-sm/6 font-medium leading-6">
-          {t('user.name')}
-        </label>
-        <Input id="name" value={user?.name} onChange={handleNameChange} />
-      </div>
+      <section className="border-accent-light border-b pb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="md:max-w-sm">
+            <h3 className="text-sm font-medium leading-6">{t('user.name')}</h3>
+          </div>
+          <div className="md:w-80">
+            <Input id="name" value={user?.name} onChange={handleNameChange} />
+          </div>
+        </div>
+      </section>
 
-      <div className="space-y-1">
-        <div className="text-base/7 font-medium sm:text-sm/5">{t('user.email.headline')}</div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <span className="text-sm/6">{user?.email}</span>
+      <section className="border-accent-light border-b pb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="md:max-w-sm">
+            <h3 className="text-sm font-medium leading-6">{t('user.email.headline')}</h3>
+          </div>
+          <div className="space-y-3 md:w-80">
+            <div className="text-sm/6">{user?.email}</div>
 
-          {!user.isSocialAccount && (
-            <Button.Ghost size="sm" onClick={handleSendCode}>
-              {t('user.email.button')}
+            {!user.isSocialAccount && (
+              <Button.Ghost size="sm" onClick={handleSendCode}>
+                {t('user.email.button')}
+              </Button.Ghost>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-accent-light border-b pb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="md:max-w-sm">
+            <h3 className="text-sm font-medium leading-6">{t('user.password.headline')}</h3>
+          </div>
+          <div className="md:w-80">
+            <Button.Ghost
+              className="w-full sm:w-auto"
+              size="sm"
+              onClick={() => openModal('ChangePasswordModal')}
+            >
+              {t('user.password.button')}
             </Button.Ghost>
-          )}
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-1">
-        <div className="text-base/7 font-medium sm:text-sm/5">{t('user.password.headline')}</div>
-        <Button.Ghost
-          className="w-full sm:w-auto"
-          size="sm"
-          onClick={() => openModal('ChangePasswordModal')}
-        >
-          {t('user.password.button')}
-        </Button.Ghost>
-      </div>
-
-      <div>
-        <div className="text-base/7 font-medium sm:text-sm/5">{t('user.deletion.headline')}</div>
-        <p className="text-secondary mt-1 text-base/5 sm:text-sm/5">
-          {t('user.deletion.subHeadline')}
-        </p>
-        <div className="mt-3">
-          <Button.Ghost
-            size="md"
-            className="bg-error text-primary-light hover:bg-error/70 dark:text-primary"
-            onClick={() => openModal('UserDeletionModal')}
-          >
-            {t('user.deletion.button')}
-          </Button.Ghost>
+      <section>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="md:max-w-sm">
+            <h3 className="text-sm font-medium leading-6">{t('user.deletion.headline')}</h3>
+          </div>
+          <div className="md:w-80">
+            <p className="text-secondary text-base/5 sm:text-sm/5">
+              {t('user.deletion.subHeadline')}
+            </p>
+            <Button.Ghost
+              size="md"
+              className="border-error/40 bg-error/10 text-error hover:bg-error/15 mt-4 border"
+              onClick={() => openModal('UserDeletionModal')}
+            >
+              {t('user.deletion.button')}
+            </Button.Ghost>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

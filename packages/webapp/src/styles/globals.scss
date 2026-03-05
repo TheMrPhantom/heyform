@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --hf-background: 244, 244, 245;
+    --hf-background: 249, 248, 247;
     --hf-foreground: 255, 255, 255;
     --hf-input: 9, 9, 11, 15%;
     --hf-primary: 9, 9, 11;
@@ -16,8 +16,9 @@
     --hf-accent: 230, 230, 230;
     --hf-accent-light: 9, 9, 11, 5%;
     --hf-error: 220, 38, 38;
+    --hf-brand: 18, 107, 243;
 
-    --hf-dashboard-zone: 248, 250, 252;
+    --hf-dashboard-zone: 9, 9, 11, 5%;
     --hf-dashboard-border: 229, 231, 235;
     --hf-dashboard-muted: 107, 114, 128;
     --hf-dashboard-radius: 0.75rem;
@@ -35,8 +36,9 @@
     --hf-accent: 230, 230, 230;
     --hf-accent-light: 255, 255, 255, 5%;
     --hf-error: 220, 38, 38;
+    --hf-brand: 37, 99, 235;
 
-    --hf-dashboard-zone: 30, 30, 33;
+    --hf-dashboard-zone: 26, 36, 50;
     --hf-dashboard-border: 57, 57, 63;
     --hf-dashboard-muted: 161, 161, 170;
     --hf-dashboard-shadow: none;
@@ -115,7 +117,7 @@ body {
   }
 
   .hf-section-title {
-    @apply text-lg font-medium;
+    @apply text-xl font-bold;
   }
 
   .hf-label-muted {
@@ -135,7 +137,7 @@ body {
   }
 
   .hf-sidebar-surface {
-    @apply bg-foreground;
+    @apply bg-background;
     border-right: 1px solid rgba(var(--hf-dashboard-border));
   }
 

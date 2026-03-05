@@ -52,7 +52,7 @@ export default function LinkSettings() {
   return (
     <section id="settings">
       <div className="flex items-center gap-4">
-        <h2 className="text-base/6 font-semibold">{t('form.share.settings.headline')}</h2>
+        <h2 className="hf-section-title">{t('form.share.settings.headline')}</h2>
       </div>
       <p className="text-secondary text-sm/6">{t('form.share.settings.subHeadline')}</p>
 
@@ -72,6 +72,7 @@ export default function LinkSettings() {
               maxLength={70}
               value={title}
               onChange={value => run('metaTitle', value)}
+              className="hf-card"
             />
           </div>
 
@@ -90,6 +91,7 @@ export default function LinkSettings() {
               maxLength={156}
               value={form?.settings?.metaDescription}
               onChange={value => run('metaDescription', value)}
+              className="hf-card"
             />
           </div>
         </div>

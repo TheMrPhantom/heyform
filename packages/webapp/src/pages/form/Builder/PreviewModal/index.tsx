@@ -44,7 +44,7 @@ const PreviewComponent: FC<PreviewComponentProps> = () => {
   )
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden px-2 pb-2">
+    <div className="builder-preview-modal flex h-full w-full flex-col overflow-hidden px-2 pb-2">
       <div className="flex h-14 items-center justify-center">
         <Tabs.SegmentedControl
           className="hidden sm:flex [&_[data-slot=nav]]:h-9 [&_[data-slot=tablist]_button]:py-0.5"
@@ -54,17 +54,22 @@ const PreviewComponent: FC<PreviewComponentProps> = () => {
         />
       </div>
 
-      <div className="bg-foreground lg:ring-primary/5 h-[calc(100vh-4rem)] lg:rounded-lg lg:shadow-sm lg:ring-1">
+      <div className="builder-preview-surface bg-foreground lg:ring-primary/5 h-[calc(100%-4rem)] overflow-hidden lg:rounded-lg lg:shadow-sm lg:ring-1">
         <div className={cn('form-preview relative h-full w-full', `form-preview-${platform}`)}>
-          <FormRenderer
-            form={form}
-            autoSave={false}
-            query={{}}
-            locale={form?.settings?.locale || 'en'}
-            alwaysShowNextButton={true}
-            enableQuestionList={form?.settings?.enableQuestionList}
-            enableNavigationArrows={form?.settings?.enableNavigationArrows}
-          />
+          {/* Regression guard: renderer must be scoped to this viewport, never to window dimensions. */}
+          <div className="form-preview-viewport" data-slot="preview-viewport">
+            <div className="form-preview-renderer" data-slot="preview-renderer">
+              <FormRenderer
+                form={form}
+                autoSave={false}
+                query={{}}
+                locale={form?.settings?.locale || 'en'}
+                alwaysShowNextButton={true}
+                enableQuestionList={form?.settings?.enableQuestionList}
+                enableNavigationArrows={form?.settings?.enableNavigationArrows}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
