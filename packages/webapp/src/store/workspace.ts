@@ -49,7 +49,7 @@ const computeState = (state: WorkspaceStoreType): ComputedStoreType => {
   let project: ProjectType | undefined
   let members: MemberType[] = []
   let forms: FormType[] = []
-  let sharingURLPrefix = WEBSITE_URL
+  let sharingURLPrefix = WEBSITE_URL.replace(/\/+$/, '')
 
   const workspace = state.workspaces.find(w => w.id === state.currentWorkspaceId)
 
@@ -60,8 +60,6 @@ const computeState = (state: WorkspaceStoreType): ComputedStoreType => {
     if (project) {
       forms = state._formMap[project.id] || []
     }
-
-    sharingURLPrefix = `http://localhost:3000`
   }
 
   return {
