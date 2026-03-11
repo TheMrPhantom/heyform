@@ -81,6 +81,7 @@ export default ({ mode }: ConfigEnv) => {
       }
     },
     server: {
+      host: '0.0.0.0',
       port: 3000,
       proxy: {
         '/graphql': {

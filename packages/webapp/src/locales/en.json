@@ -458,12 +458,10 @@
   },
   "signUp": {
     "title": "Create an account",
-    "subHeadline": "Start a 7-day trial with all features unlocked",
     "name": {
       "label": "Name",
       "required": "The name is not allow to be empty"
     },
-    "agreement": "By signing up, you agree to our <a1>terms of service</a1> and <a2>privacy policy</a2>.",
     "haveAccount": "Already have an account? <a>Log in</a>."
   },
   "forgotPassword": {

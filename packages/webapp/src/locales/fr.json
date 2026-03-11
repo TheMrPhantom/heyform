@@ -458,12 +458,10 @@
   },
   "signUp": {
     "title": "Créer un compte",
-    "subHeadline": "Commencez un essai de 7 jours avec toutes les fonctionnalités déverrouillées",
     "name": {
       "label": "Nom",
       "required": "Le nom ne doit pas être vide"
     },
-    "agreement": "En vous inscrivant, vous acceptez nos <a1>conditions d'utilisation</a1> et notre <a2>politique de confidentialité</a2>.",
     "haveAccount": "Vous avez déjà un compte ? <a>Connectez-vous</a>."
   },
   "forgotPassword": {

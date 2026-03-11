@@ -1,5 +1,4 @@
-import { LayoutProps } from '@heyooo-inc/react-router'
-import { FC, useEffect, useMemo } from 'react'
+import { FC, ReactNode, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router-dom'
 
@@ -8,11 +7,14 @@ import { cn, useParam } from '@/utils'
 import { Button } from '@/components'
 import { useAppStore, useWorkspaceStore } from '@/store'
 
-import { WorkspaceLayout } from '../Workspace'
 import ProjectMembers from './ProjectMembers'
 import ProjectMembersModal from './ProjectMembersModal'
 
-export const ProjectLayout: FC<LayoutProps> = ({ options, children }) => {
+interface ProjectShellProps {
+  children: ReactNode
+}
+
+export const ProjectShell: FC<ProjectShellProps> = ({ children }) => {
   const { t } = useTranslation()
 
   const location = useLocation()
@@ -51,44 +53,41 @@ export const ProjectLayout: FC<LayoutProps> = ({ options, children }) => {
 
   return (
     <>
-      <WorkspaceLayout options={options}>
-        <div className="w-full">
-          <div className="mx-auto max-w-5xl px-6 py-8">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl/8 font-semibold sm:text-xl/8">{project?.name}</h1>
+      <div className="w-full">
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl/8 font-semibold sm:text-xl/8">{project?.name}</h1>
 
-              <Button size="md" onClick={() => openModal('CreateFormModal')}>
-                {t('form.creation.title')}
-              </Button>
-            </div>
-
-            <ProjectMembers />
-
-            {/* Navigation */}
-            <div className="border-accent-light mt-5 border-b">
-              <nav className="text-secondary flex items-center gap-6 text-sm font-medium">
-                {navigations.map(n => (
-                  <NavLink
-                    key={n.value}
-                    className={({ isActive }) =>
-                      cn('hover:text-primary py-3', {
-                        'text-primary after:bg-primary relative after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full':
-                          isActive
-                      })
-                    }
-                    to={n.to}
-                    end
-                  >
-                    {n.label}
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
-
-            {children}
+            <Button size="md" onClick={() => openModal('CreateFormModal')}>
+              {t('form.creation.title')}
+            </Button>
           </div>
+
+          <ProjectMembers />
+
+          <div className="border-accent-light mt-5 border-b">
+            <nav className="text-secondary flex items-center gap-6 text-sm font-medium">
+              {navigations.map(n => (
+                <NavLink
+                  key={n.value}
+                  className={({ isActive }) =>
+                    cn('hover:text-primary py-3', {
+                      'text-primary after:bg-primary relative after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full':
+                        isActive
+                    })
+                  }
+                  to={n.to}
+                  end
+                >
+                  {n.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          {children}
         </div>
-      </WorkspaceLayout>
+      </div>
 
       <ProjectMembersModal />
     </>

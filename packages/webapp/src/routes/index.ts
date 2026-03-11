@@ -1,11 +1,8 @@
-import {
-  AuthLayout,
-  BaseLayout,
-  FormLayout,
-  ProjectLayout,
-  WorkspaceGuard,
-  WorkspaceLayout
-} from '@/layouts'
+import { createElement } from 'react'
+import { Navigate } from 'react-router-dom'
+
+import { isRegistrationDisabled } from '@/consts'
+import { AuthLayout, BaseLayout, FormLayout, WorkspaceGuard, WorkspaceLayout } from '@/layouts'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import Login from '@/pages/auth/Login'
 import OAuth from '@/pages/auth/OAuth'
@@ -27,6 +24,11 @@ import WorkspaceInvitation from '@/pages/workspace/Invitation'
 import WorkspaceMembers from '@/pages/workspace/Members'
 import WorkspaceSettings from '@/pages/workspace/Settings'
 
+const SignUpRoute = () =>
+  isRegistrationDisabled()
+    ? createElement(Navigate, { to: '/login', replace: true })
+    : createElement(SignUp)
+
 const routes = [
   {
     path: '/login',
@@ -38,7 +40,7 @@ const routes = [
   },
   {
     path: '/sign-up',
-    component: SignUp,
+    component: SignUpRoute,
     layout: AuthLayout,
     options: {
       title: 'signUp.title'
@@ -132,7 +134,7 @@ const routes = [
   },
   {
     path: '/workspace/:workspaceId/project/:projectId',
-    layout: ProjectLayout,
+    layout: WorkspaceLayout,
     component: ProjectForms,
     options: {
       loginRequired: true,
@@ -141,7 +143,7 @@ const routes = [
   },
   {
     path: '/workspace/:workspaceId/project/:projectId/trash',
-    layout: ProjectLayout,
+    layout: WorkspaceLayout,
     component: ProjectTrash,
     options: {
       loginRequired: true,

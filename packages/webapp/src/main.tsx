@@ -12,7 +12,6 @@ import { Toaster } from '@/components'
 import { REDIRECT_COOKIE_NAME } from '@/consts'
 import '@/i18n'
 import { AuthLayout } from '@/layouts'
-import routes from '@/routes'
 import '@/styles/globals.scss'
 
 if (!getDeviceId()) {
@@ -30,7 +29,7 @@ const Fallback = () => {
   )
 }
 
-const App = () => {
+const App = ({ routes }: { routes: Route[] }) => {
   function render(options?: any, children?: ReactNode) {
     const isLoggedIn = getAuthState()
 
@@ -53,11 +52,36 @@ const App = () => {
   return (
     <ErrorBoundary fallback={<Fallback />}>
       <Tooltip.Provider>
-        <Router routes={routes as Route[]} render={render} />
+        <Router routes={routes} render={render} />
       </Tooltip.Provider>
       <Toaster />
     </ErrorBoundary>
   )
 }
 
-createRoot(document.getElementById('root')!).render(<App />)
+async function loadRuntimeConfig() {
+  try {
+    const response = await fetch('/api/config', {
+      credentials: 'include'
+    })
+
+    if (response.ok) {
+      const config = await response.json()
+
+      window.heyform = {
+        ...(window.heyform || {}),
+        ...config
+      }
+    }
+  } catch (_) {}
+}
+
+async function bootstrap() {
+  await loadRuntimeConfig()
+
+  const { default: routes } = await import('@/routes')
+
+  createRoot(document.getElementById('root')!).render(<App routes={routes as Route[]} />)
+}
+
+bootstrap()

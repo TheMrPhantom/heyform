@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common'
+import { Controller, Get, Req, Res } from '@nestjs/common'
 
 import { AuthService } from '@service'
 
@@ -7,8 +7,8 @@ export class LogoutController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('/logout')
-  async index(@Res() res: any) {
-    this.authService.removeSession(res)
+  async index(@Req() req: any, @Res() res: any) {
+    await this.authService.removeSession(req, res)
     res.redirect(302, '/login')
   }
 }

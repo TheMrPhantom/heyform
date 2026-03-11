@@ -111,21 +111,31 @@ export class AuthService {
     } catch (_) {}
   }
 
-  removeSession(res: any): void {
-    res.cookie(
-      COOKIE_SESSION_NAME,
-      '',
-      SessionOptionsFactory({
-        maxAge: 0
+  async removeSession(req: any, res: any): Promise<void> {
+    const session = this.getSession(req)
+
+    if (helper.isValid(session?.id) && helper.isValid(session?.deviceId)) {
+      await this.redisService.hdel({
+        key: AuthService.sessionKey(session.id),
+        field: session.deviceId
       })
-    )
-    res.cookie(
-      COOKIE_LOGIN_IN_NAME,
-      '',
-      CookieOptionsFactory({
-        maxAge: 0
-      })
-    )
+    }
+
+    const sessionCookieOptions = SessionOptionsFactory({
+      expires: new Date(0),
+      maxAge: 0,
+      path: '/'
+    })
+    const loginCookieOptions = CookieOptionsFactory({
+      expires: new Date(0),
+      maxAge: 0,
+      path: '/'
+    })
+
+    res.clearCookie(COOKIE_SESSION_NAME, sessionCookieOptions)
+    res.clearCookie(COOKIE_LOGIN_IN_NAME, loginCookieOptions)
+    res.cookie(COOKIE_SESSION_NAME, '', sessionCookieOptions)
+    res.cookie(COOKIE_LOGIN_IN_NAME, '', loginCookieOptions)
   }
 
   async isExpired(userId: string, deviceId: string): Promise<boolean> {

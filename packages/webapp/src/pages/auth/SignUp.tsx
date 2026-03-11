@@ -35,7 +35,6 @@ const SignUp = () => {
     <div className="mx-auto grid w-[21.875rem] gap-6 py-12 lg:py-0">
       <div className="grid gap-2 text-center">
         <h1 className="text-3xl font-bold">{t('signUp.title')}</h1>
-        <p className="text-secondary text-sm">{t('signUp.subHeadline')}</p>
       </div>
 
       <SocialLogin isSignUp />
@@ -107,32 +106,7 @@ const SignUp = () => {
         </Form.Item>
       </Form.Simple>
 
-      <div className="text-secondary space-y-2 text-center text-sm">
-        <p>
-          <Trans
-            t={t}
-            i18nKey="signUp.agreement"
-            components={{
-              a1: (
-                <a
-                  className="hover:text-primary underline underline-offset-4"
-                  href="https://docs.heyform.net/terms-conditions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              ),
-              a2: (
-                <a
-                  className="hover:text-primary underline underline-offset-4"
-                  href="https://docs.heyform.net/privacy-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              )
-            }}
-          />
-        </p>
-
+      <div className="text-secondary text-center text-sm">
         <p>
           <Trans
             t={t}

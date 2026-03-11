@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.6",
   "homepage": "https://heyform.net",
   "author": "Heyooo, Inc.",
   "license": "AGPL-3.0",
@@ -13,6 +13,8 @@
     "start": "sh -c \"if [ -f ./dist/main.js ]; then node --enable-source-maps ./dist/main.js; elif [ -f ./dist/src/main.js ]; then node --enable-source-maps ./dist/src/main.js; else node --enable-source-maps ./dist/packages/server/main.js; fi\"",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint \"src/**/*.ts\" --quiet --fix",
+    "migrate:seed": "node ./scripts/migrate-seed.js",
+    "prestart": "pnpm run migrate:seed",
     "prebuild": "rimraf dist"
   },
   "dependencies": {

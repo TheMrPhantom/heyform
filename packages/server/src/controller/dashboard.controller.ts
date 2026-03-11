@@ -2,6 +2,7 @@ import { Controller, Get, Header, Res } from '@nestjs/common'
 import { Response } from 'express'
 
 import {
+  APP_DISABLE_REGISTRATION,
   APP_HOMEPAGE_URL,
   COOKIE_DOMAIN,
   ENABLE_GOOGLE_FONTS,
@@ -11,12 +12,37 @@ import {
 
 @Controller()
 export class DashboardController {
+  private runtimeConfig() {
+    return {
+      homepageURL: APP_HOMEPAGE_URL,
+      websiteURL: APP_HOMEPAGE_URL,
+      appDisableRegistration: APP_DISABLE_REGISTRATION,
+      cookieDomain: COOKIE_DOMAIN,
+      enableGoogleFonts: ENABLE_GOOGLE_FONTS,
+      stripePublishableKey: STRIPE_PUBLISHABLE_KEY,
+      googleRecaptchaKey: GOOGLE_RECAPTCHA_KEY
+    }
+  }
+
+  @Get('/api/config')
+  config() {
+    return this.runtimeConfig()
+  }
+
+  @Get('/sign-up')
+  signUp(@Res() res: Response) {
+    if (APP_DISABLE_REGISTRATION) {
+      return res.redirect(302, '/login')
+    }
+
+    return this.index(res)
+  }
+
   @Get([
     '/',
     '/dashboard',
     '/dashboard/*',
     '/login',
-    '/sign-up',
     '/forgot-password',
     '/reset-password',
     '/verify-email',
@@ -31,14 +57,7 @@ export class DashboardController {
       title: 'HeyForm Dashboard - Create and Manage Custom Forms Effortlessly',
       description:
         "Simplify your form creation process with HeyForm's intuitive dashboard. Design, customize, and manage forms all in one place, with no coding required.",
-      heyform: {
-        homepageURL: APP_HOMEPAGE_URL,
-        websiteURL: APP_HOMEPAGE_URL,
-        cookieDomain: COOKIE_DOMAIN,
-        enableGoogleFonts: ENABLE_GOOGLE_FONTS,
-        stripePublishableKey: STRIPE_PUBLISHABLE_KEY,
-        googleRecaptchaKey: GOOGLE_RECAPTCHA_KEY
-      }
+      heyform: this.runtimeConfig()
     })
   }
 }

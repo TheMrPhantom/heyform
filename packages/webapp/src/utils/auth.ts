@@ -14,8 +14,17 @@ export function getCookie(key: string) {
 }
 
 export function clearCookie(key: string) {
-  setCookie(key, '', {
-    expires: 0
+  cookies.remove(key, {
+    domain: COOKIE_OPTIONS.domain,
+    path: '/',
+    sameSite: COOKIE_OPTIONS.sameSite,
+    secure: COOKIE_OPTIONS.secure
+  })
+
+  cookies.remove(key, {
+    path: '/',
+    sameSite: COOKIE_OPTIONS.sameSite,
+    secure: COOKIE_OPTIONS.secure
   })
 }
 

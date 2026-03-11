@@ -8,6 +8,7 @@ import { useParam } from '@/utils'
 import { helper } from '@heyform-inc/utils'
 
 import { Async, EmptyState, Repeat } from '@/components'
+import { ProjectShell } from '@/layouts'
 import { FormType } from '@/types'
 
 import FormItem from '../Forms/FormItem'
@@ -30,7 +31,7 @@ export default function ProjectTrash() {
   }
 
   return (
-    <>
+    <ProjectShell>
       <p className="text-secondary my-4 text-sm">
         <Trans
           t={t}
@@ -74,6 +75,6 @@ export default function ProjectTrash() {
           ))}
         </div>
       </Async>
-    </>
+    </ProjectShell>
   )
 }

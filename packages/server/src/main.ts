@@ -13,6 +13,7 @@ import { Logger, hbs } from '@utils'
 
 import { AppModule } from './app.module'
 import { AllExceptionsFilter } from './common/filter'
+import './common/polyfill/node-util'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

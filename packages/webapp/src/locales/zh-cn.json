@@ -458,12 +458,10 @@
   },
   "signUp": {
     "title": "创建账户",
-    "subHeadline": "开始7天试用，所有功能全部解锁",
     "name": {
       "label": "姓名",
       "required": "姓名不能为空"
     },
-    "agreement": "注册即表示您同意我们的<a1>服务条款</a1>和<a2>隐私政策</a2>。",
     "haveAccount": "已经有账户了？<a>登录</a>。"
   },
   "forgotPassword": {

@@ -458,12 +458,10 @@
   },
   "signUp": {
     "title": "Utwórz konto",
-    "subHeadline": "Rozpocznij 7-dniowy okres próbny z odblokowanymi wszystkimi funkcjami",
     "name": {
       "label": "Imię",
       "required": "Imię nie może być puste"
     },
-    "agreement": "Rejestrując się, zgadzasz się na nasze <a1>warunki korzystania z usługi</a1> oraz <a2>politykę prywatności</a2>.",
     "haveAccount": "Masz już konto? <a>Zaloguj się</a>."
   },
   "forgotPassword": {

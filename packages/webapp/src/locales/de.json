@@ -458,12 +458,10 @@
   },
   "signUp": {
     "title": "Ein Konto erstellen",
-    "subHeadline": "Starten Sie eine 7-tägige Testversion mit allen freigeschalteten Funktionen",
     "name": {
       "label": "Name",
       "required": "Der Name darf nicht leer sein"
     },
-    "agreement": "Durch die Anmeldung stimmen Sie unseren <a1>Nutzungsbedingungen</a1> und unserer <a2>Datenschutzrichtlinie</a2> zu.",
     "haveAccount": "Haben Sie bereits ein Konto? <a>Anmelden</a>."
   },
   "forgotPassword": {

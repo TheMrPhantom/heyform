@@ -31,12 +31,13 @@ export const DISABLE_LOGIN_WITH_APPLE = helper.isTrue(
 export const VERIFY_USER_EMAIL = helper.isTrue(
   window.heyform?.verifyUserEmail || import.meta.env.VITE_VERIFY_USER_EMAIL
 )
-export const APP_DISABLE_REGISTRATION = helper.isTrue(
-  window.heyform?.appDisableRegistration || import.meta.env.VITE_APP_DISABLE_REGISTRATION
-)
 export const ENABLE_GOOGLE_FONTS = helper.isTrue(
   window.heyform?.enableGoogleFonts ?? import.meta.env.VITE_ENABLE_GOOGLE_FONTS ?? 'true'
 )
+
+export function isRegistrationDisabled() {
+  return helper.isTrue(window.heyform?.appDisableRegistration)
+}
 
 export const TEMPLATES_URL =
   window.heyform?.templatesURL || (import.meta.env.VITE_TEMPLATES_URL as string)

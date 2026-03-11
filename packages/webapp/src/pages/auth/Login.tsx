@@ -5,6 +5,7 @@ import { AuthService } from '@/services'
 import { useRouter } from '@/utils'
 
 import { Form, Input } from '@/components'
+import { isRegistrationDisabled } from '@/consts'
 
 import SocialLogin from './SocialLogin'
 
@@ -21,21 +22,23 @@ const Login = () => {
     <div className="mx-auto grid w-[21.875rem] gap-6 py-12 lg:py-0">
       <div className="grid gap-2 text-center">
         <h1 className="text-3xl font-bold">{t('login.headline')}</h1>
-        <p className="text-secondary text-sm">
-          <Trans
-            t={t}
-            i18nKey="login.subHeadline"
-            components={{
-              a: (
-                <Link
-                  key="sign-up"
-                  className="hover:text-primary underline underline-offset-4"
-                  to="/sign-up"
-                />
-              )
-            }}
-          />
-        </p>
+        {!isRegistrationDisabled() && (
+          <p className="text-secondary text-sm">
+            <Trans
+              t={t}
+              i18nKey="login.subHeadline"
+              components={{
+                a: (
+                  <Link
+                    key="sign-up"
+                    className="hover:text-primary underline underline-offset-4"
+                    to="/sign-up"
+                  />
+                )
+              }}
+            />
+          </p>
+        )}
       </div>
 
       <SocialLogin />

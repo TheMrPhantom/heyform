@@ -458,12 +458,10 @@
   },
   "signUp": {
     "title": "創建帳戶",
-    "subHeadline": "開始7天試用，所有功能全部解鎖",
     "name": {
       "label": "姓名",
       "required": "姓名不能為空"
     },
-    "agreement": "註冊即表示您同意我們的<a1>服務條款</a1>和<a2>隱私政策</a2>。",
     "haveAccount": "已經有帳戶了？<a>登入</a>。"
   },
   "forgotPassword": {
