@@ -7,8 +7,10 @@ import {
   COOKIE_DOMAIN,
   ENABLE_GOOGLE_FONTS,
   GOOGLE_RECAPTCHA_KEY,
-  STRIPE_PUBLISHABLE_KEY
+  STRIPE_PUBLISHABLE_KEY,
+  VERIFY_EMAIL_RESEND_COOLDOWN
 } from '@environments'
+import { hs } from '@heyform-inc/utils'
 
 @Controller()
 export class DashboardController {
@@ -20,7 +22,8 @@ export class DashboardController {
       cookieDomain: COOKIE_DOMAIN,
       enableGoogleFonts: ENABLE_GOOGLE_FONTS,
       stripePublishableKey: STRIPE_PUBLISHABLE_KEY,
-      googleRecaptchaKey: GOOGLE_RECAPTCHA_KEY
+      googleRecaptchaKey: GOOGLE_RECAPTCHA_KEY,
+      verifyEmailResendCooldownSeconds: Math.ceil(hs(VERIFY_EMAIL_RESEND_COOLDOWN) / 1000)
     }
   }
 

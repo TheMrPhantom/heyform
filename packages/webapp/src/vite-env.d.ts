@@ -34,6 +34,7 @@ declare global {
       cookieDomain?: string
       stripePublishableKey?: string
       googleRecaptchaKey?: string
+      verifyEmailResendCooldownSeconds?: number | string
       appDisableRegistration?: boolean | string
       enableGoogleFonts?: boolean | string
       disableLoginWithApple?: boolean | string

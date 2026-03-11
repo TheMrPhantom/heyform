@@ -7,7 +7,7 @@ export const LOGIN_GQL = gql`
 `
 
 export const SIGN_UP_GQL = gql`
-  query signUp($input: SignUpInput!) {
+  mutation signUp($input: SignUpInput!) {
     signUp(input: $input)
   }
 `
@@ -939,7 +939,7 @@ export const UPDATE_USER_PASSWORD_GQL = gql`
 `
 
 export const EMAIL_VERIFICATION_CODE_GQL = gql`
-  query emailVerificationCode {
+  mutation emailVerificationCode {
     emailVerificationCode
   }
 `

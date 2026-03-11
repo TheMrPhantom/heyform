@@ -10,6 +10,7 @@ import {
 import { loadDevMessages, loadErrorMessages } from '@apollo/client/dev'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
+import { getMainDefinition } from '@apollo/client/utilities'
 import { RetryLink } from 'apollo-link-retry'
 import ApolloLinkTimeout from 'apollo-link-timeout'
 
@@ -30,6 +31,16 @@ const httpLink = new HttpLink({
 })
 
 const retryLink: any = new RetryLink({
+  attempts: {
+    retryIf: (error, operation) => {
+      if (!error) {
+        return false
+      }
+
+      const definition = getMainDefinition(operation.query)
+      return definition.kind === 'OperationDefinition' && definition.operation === 'query'
+    }
+  },
   delay: {
     initial: 300,
     max: Infinity,

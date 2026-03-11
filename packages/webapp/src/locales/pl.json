@@ -487,7 +487,11 @@
   "verifyEmail": {
     "title": "Zweryfikuj adres e-mail",
     "subHeadline": "Wysłaliśmy Ci e-mail z 6-cyfrowym kodem weryfikacyjnym. Sprawdź swoją skrzynkę odbiorczą na {{email}}.",
-    "resend": "Nie otrzymałeś kodu? <button>Wyślij ponownie</button>"
+    "resend": "Nie otrzymałeś kodu? <button>Wyślij ponownie</button>",
+    "resendLabel": "Nie otrzymałeś kodu?",
+    "resendAction": "Wyślij ponownie",
+    "resendCountdown": "Wyślij ponownie za {{seconds}} s",
+    "resendCooldown": "Nowy kod będzie można zamówić za {{seconds}} s."
   },
   "oauth": {
     "title": "Autoryzacja",

@@ -39,6 +39,11 @@ export function isRegistrationDisabled() {
   return helper.isTrue(window.heyform?.appDisableRegistration)
 }
 
+export function getVerifyEmailResendCooldownSeconds() {
+  const value = Number(window.heyform?.verifyEmailResendCooldownSeconds)
+  return Number.isFinite(value) && value > 0 ? value : 60
+}
+
 export const TEMPLATES_URL =
   window.heyform?.templatesURL || (import.meta.env.VITE_TEMPLATES_URL as string)
 export const HELP_CENTER_URL =

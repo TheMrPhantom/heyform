@@ -255,8 +255,9 @@ export class AuthService {
 
     if (cooldownUntil > now) {
       const waitSeconds = Math.ceil((cooldownUntil - now) / 1000)
+      const unit = waitSeconds === 1 ? 'second' : 'seconds'
       throw new ForbiddenException(
-        `Please wait ${waitSeconds} seconds before requesting another code email.`
+        `Please wait ${waitSeconds} ${unit} before requesting another code email.`
       )
     }
 

@@ -78,9 +78,8 @@ export class UserService {
   }
 
   static emailVerificationCode() {
-    return apollo.query({
-      query: EMAIL_VERIFICATION_CODE_GQL,
-      fetchPolicy: 'network-only'
+    return apollo.mutate({
+      mutation: EMAIL_VERIFICATION_CODE_GQL
     })
   }
 

@@ -487,7 +487,11 @@
   "verifyEmail": {
     "title": "Verify email address",
     "subHeadline": "We've sent you an email with a 6-digit verification code. Please check your inbox at {{email}}.",
-    "resend": "Don't receive the code? <button>Resend</button>"
+    "resend": "Don't receive the code? <button>Resend</button>",
+    "resendLabel": "Don't receive the code?",
+    "resendAction": "Resend",
+    "resendCountdown": "Resend in {{seconds}}s",
+    "resendCooldown": "You can request a new code in {{seconds}}s."
   },
   "oauth": {
     "title": "Authorize",

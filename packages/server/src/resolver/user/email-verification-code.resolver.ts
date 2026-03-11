@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common'
 
 import { Auth, User } from '@decorator'
 import { UserModel } from '@model'
-import { Query, Resolver } from '@nestjs/graphql'
+import { Mutation, Resolver } from '@nestjs/graphql'
 import { AuthService, MailService } from '@service'
 
 @Resolver()
@@ -13,7 +13,7 @@ export class EmailVerificationCodeResolver {
     private readonly authService: AuthService
   ) {}
 
-  @Query(returns => Boolean)
+  @Mutation(returns => Boolean)
   async emailVerificationCode(@User() user: UserModel): Promise<boolean> {
     if (user.isEmailVerified) {
       throw new BadRequestException('Email is already verified')

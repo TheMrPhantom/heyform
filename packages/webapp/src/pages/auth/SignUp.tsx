@@ -15,7 +15,7 @@ const SignUp = () => {
   const { t } = useTranslation()
 
   const router = useRouter()
-  const { setTemporaryEmail } = useUserStore()
+  const { setTemporaryEmail, setVerifyEmailSentAt } = useUserStore()
 
   const [isFocused, setIsFocused] = useState(false)
   const [password, setPassword] = useState<string>()
@@ -28,6 +28,7 @@ const SignUp = () => {
     await AuthService.signUp(values)
 
     setTemporaryEmail(values.email)
+    setVerifyEmailSentAt(Date.now())
     router.replace('/verify-email')
   }
 

@@ -9,10 +9,12 @@ import { UserType } from '@/types'
 interface UserStoreType {
   user: UserType
   temporaryEmail?: string
+  verifyEmailSentAt?: number
 
   setUser: (user: UserType) => void
   updateUser: (user: Partial<UserType>) => void
   setTemporaryEmail: (email?: string) => void
+  setVerifyEmailSentAt: (value?: number) => void
 }
 
 export const useUserStore = create<UserStoreType>()(
@@ -36,13 +38,23 @@ export const useUserStore = create<UserStoreType>()(
         set(state => {
           state.temporaryEmail = email
         })
+      },
+
+      setVerifyEmailSentAt: value => {
+        set(state => {
+          state.verifyEmailSentAt = value
+        })
       }
     })),
     {
       name: USER_STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
       partialize: state =>
-        Object.fromEntries(Object.entries(state).filter(([key]) => ['user'].includes(key)))
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) =>
+            ['temporaryEmail', 'user', 'verifyEmailSentAt'].includes(key)
+          )
+        )
     }
   )
 )

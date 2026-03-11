@@ -487,7 +487,11 @@
   "verifyEmail": {
     "title": "メールアドレスの確認",
     "subHeadline": "{{email}} に6桁の認証コードを含むメールを送信しました。ご確認ください。",
-    "resend": "認証コードが届きませんか？<button>再送信</button>"
+    "resend": "認証コードが届きませんか？<button>再送信</button>",
+    "resendLabel": "認証コードが届きませんか？",
+    "resendAction": "再送信",
+    "resendCountdown": "{{seconds}}秒後に再送信",
+    "resendCooldown": "{{seconds}}秒後に新しいコードをリクエストできます。"
   },
   "oauth": {
     "title": "承認",

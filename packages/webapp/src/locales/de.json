@@ -487,7 +487,11 @@
   "verifyEmail": {
     "title": "E-Mail-Adresse verifizieren",
     "subHeadline": "Wir haben Ihnen eine E-Mail mit einem 6-stelligen Verifizierungscode gesendet. Bitte überprüfen Sie Ihr Postfach unter {{email}}.",
-    "resend": "Haben Sie den Code nicht erhalten? <button>Erneut senden</button>"
+    "resend": "Haben Sie den Code nicht erhalten? <button>Erneut senden</button>",
+    "resendLabel": "Haben Sie den Code nicht erhalten?",
+    "resendAction": "Erneut senden",
+    "resendCountdown": "Erneut senden in {{seconds}} s",
+    "resendCooldown": "Sie können in {{seconds}} s einen neuen Code anfordern."
   },
   "oauth": {
     "title": "Autorisieren",

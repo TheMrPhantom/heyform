@@ -6,7 +6,7 @@ import { SignUpInput } from '@graphql'
 import { DeviceIdGuard } from '@guard'
 import { helper } from '@heyform-inc/utils'
 import { UserActivityKindEnum } from '@model'
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { AuthService, MailService, UserService } from '@service'
 import { ClientInfo, GqlClient, gravatar, passwordHash } from '@utils'
 import { isDisposableEmail } from '@utils'
@@ -20,7 +20,7 @@ export class SignUpResolver {
     private readonly mailService: MailService
   ) {}
 
-  @Query(returns => Boolean)
+  @Mutation(returns => Boolean)
   async signUp(
     @GqlClient() client: ClientInfo,
     @GraphqlResponse() res: any,

@@ -1,6 +1,6 @@
 import { useRequest } from 'ahooks'
-import { useEffect } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { UserService } from '@/services'
 import { useRouter } from '@/utils'
@@ -13,6 +13,7 @@ import {
   InputOTPSlot,
   useToast
 } from '@/components'
+import { getVerifyEmailResendCooldownSeconds } from '@/consts'
 import { useUserStore } from '@/store'
 
 export default function VerifyEmail() {
@@ -20,7 +21,26 @@ export default function VerifyEmail() {
 
   const router = useRouter()
   const toast = useToast()
-  const { temporaryEmail, user, updateUser } = useUserStore()
+  const cooldownSeconds = getVerifyEmailResendCooldownSeconds()
+  const {
+    temporaryEmail,
+    user,
+    updateUser,
+    setTemporaryEmail,
+    verifyEmailSentAt,
+    setVerifyEmailSentAt
+  } = useUserStore()
+  const [now, setNow] = useState(() => Date.now())
+
+  const resendRemaining = useMemo(() => {
+    if (!verifyEmailSentAt) {
+      return 0
+    }
+
+    const cooldownUntil = verifyEmailSentAt + cooldownSeconds * 1000
+    const remaining = Math.ceil((cooldownUntil - now) / 1000)
+    return remaining > 0 ? remaining : 0
+  }, [cooldownSeconds, now, verifyEmailSentAt])
 
   const { loading: sendLoading, run: sendRun } = useRequest(
     async () => {
@@ -29,6 +49,7 @@ export default function VerifyEmail() {
       }
 
       await UserService.emailVerificationCode()
+      setVerifyEmailSentAt(Date.now())
     },
     {
       manual: true,
@@ -43,14 +64,30 @@ export default function VerifyEmail() {
   )
 
   useEffect(() => {
-    if (!user.isEmailVerified && !temporaryEmail) {
+    if (!user.isEmailVerified && !temporaryEmail && !verifyEmailSentAt) {
       sendRun()
     }
-  }, [sendRun, temporaryEmail, user.isEmailVerified])
+  }, [sendRun, temporaryEmail, user.isEmailVerified, verifyEmailSentAt])
+
+  useEffect(() => {
+    if (resendRemaining < 1) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setNow(Date.now())
+    }, 1000)
+
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [resendRemaining])
 
   const { loading: verifyLoading, run: verifyRun } = useRequest(
     async (code: string) => {
       await UserService.verifyEmail(code)
+      setTemporaryEmail(undefined)
+      setVerifyEmailSentAt(undefined)
       updateUser({
         isEmailVerified: true
       })
@@ -86,19 +123,20 @@ export default function VerifyEmail() {
         </InputOTP>
 
         <p className="text-secondary mt-4 text-center text-sm">
-          <Trans
-            t={t}
-            i18nKey="verifyEmail.resend"
-            components={{
-              button: (
-                <Button.Link
-                  className="text-secondary hover:text-primary !p-0 underline hover:bg-transparent"
-                  loading={sendLoading}
-                  onClick={sendRun}
-                />
-              )
-            }}
-          />
+          {resendRemaining > 0 ? (
+            <span>{t('verifyEmail.resendCooldown', { seconds: resendRemaining })}</span>
+          ) : (
+            <>
+              <span>{t('verifyEmail.resendLabel')} </span>
+              <Button.Link
+                className="text-secondary enabled:hover:text-primary !inline-flex !p-0 underline hover:bg-transparent"
+                loading={sendLoading}
+                onClick={sendRun}
+              >
+                {t('verifyEmail.resendAction')}
+              </Button.Link>
+            </>
+          )}
         </p>
       </div>
     </div>
