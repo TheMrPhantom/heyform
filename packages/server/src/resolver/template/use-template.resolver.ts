@@ -8,6 +8,8 @@ import { TeamModel, UserModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { FormService } from '@service'
 
+const DEFAULT_FORM_NAME = 'Untitled'
+
 @Resolver()
 @Auth()
 export class UseTemplateResolver {
@@ -30,7 +32,7 @@ export class UseTemplateResolver {
       teamId: team.id,
       projectId: input.projectId,
       memberId: user.id,
-      name: template.name,
+      name: helper.isValid(template.name?.trim()) ? template.name.trim() : DEFAULT_FORM_NAME,
       kind: template.kind,
       interactiveMode: template.interactiveMode,
       fields: [],

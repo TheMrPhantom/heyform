@@ -5,6 +5,8 @@ import { FormModel } from '@model'
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { FormService, SubmissionService } from '@service'
 
+const DEFAULT_FORM_NAME = 'Untitled'
+
 @Resolver()
 @Auth()
 export class FormsResolver {
@@ -30,6 +32,10 @@ export class FormsResolver {
 
       //@ts-ignore
       form.submissionCount = countMap.find(row => row._id === form.id)?.count ?? 0
+
+      if (helper.isEmpty(form.name)) {
+        form.name = DEFAULT_FORM_NAME
+      }
 
       return form
     })

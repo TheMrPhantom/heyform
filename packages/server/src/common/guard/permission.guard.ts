@@ -1,4 +1,10 @@
-import { BadRequestException, CanActivate, ExecutionContext, Inject } from '@nestjs/common'
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  UnauthorizedException
+} from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 
 import { helper, timestamp } from '@heyform-inc/utils'
@@ -41,6 +47,10 @@ export class PermissionGuard implements CanActivate {
 
     const user = req.user
     const scope = this.reflector.get<PermissionScopeEnum>('scope', context.getHandler())
+
+    if (helper.isEmpty(user)) {
+      throw new UnauthorizedException('Unauthorized')
+    }
 
     let { teamId, projectId } = args.input
 

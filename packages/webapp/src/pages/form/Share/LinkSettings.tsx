@@ -89,7 +89,7 @@ export default function LinkSettings() {
               id="meta-description"
               rows={6}
               maxLength={156}
-              value={form?.settings?.metaDescription}
+              value={description}
               onChange={value => run('metaDescription', value)}
               className="hf-card"
             />

@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { isRegistrationDisabled } from '@/consts'
-import { AuthLayout, BaseLayout, FormLayout, WorkspaceGuard, WorkspaceLayout } from '@/layouts'
+import { AuthLayout, BaseLayout, WorkspaceGuard, WorkspaceLayout } from '@/layouts'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import Login from '@/pages/auth/Login'
 import OAuth from '@/pages/auth/OAuth'
@@ -137,6 +137,7 @@ const routes = [
     layout: WorkspaceLayout,
     component: ProjectForms,
     options: {
+      projectShell: true,
       loginRequired: true,
       title: 'project.forms.title'
     }
@@ -146,51 +147,57 @@ const routes = [
     layout: WorkspaceLayout,
     component: ProjectTrash,
     options: {
+      projectShell: true,
       loginRequired: true,
       title: 'project.trash.title'
     }
   },
   {
     path: '/workspace/:workspaceId/project/:projectId/form/:formId/analytics',
-    layout: FormLayout,
+    layout: WorkspaceLayout,
     component: FormAnalytics,
     options: {
+      formShell: true,
       loginRequired: true,
       title: 'form.analytics.title'
     }
   },
   {
     path: '/workspace/:workspaceId/project/:projectId/form/:formId/submissions',
-    layout: FormLayout,
+    layout: WorkspaceLayout,
     component: FormSubmissions,
     options: {
+      formShell: true,
       loginRequired: true,
       title: 'form.submissions.title'
     }
   },
   {
     path: '/workspace/:workspaceId/project/:projectId/form/:formId/integrations',
-    layout: FormLayout,
+    layout: WorkspaceLayout,
     component: FormIntegrations,
     options: {
+      formShell: true,
       loginRequired: true,
       title: 'form.integrations.title'
     }
   },
   {
     path: '/workspace/:workspaceId/project/:projectId/form/:formId/share',
-    layout: FormLayout,
+    layout: WorkspaceLayout,
     component: FormShare,
     options: {
+      formShell: true,
       loginRequired: true,
       title: 'form.share.title'
     }
   },
   {
     path: '/workspace/:workspaceId/project/:projectId/form/:formId/settings',
-    layout: FormLayout,
+    layout: WorkspaceLayout,
     component: FormSettings,
     options: {
+      formShell: true,
       loginRequired: true,
       title: 'form.settings.title',
       className: '[&_[data-slot=layout-container]]:!pb-0'

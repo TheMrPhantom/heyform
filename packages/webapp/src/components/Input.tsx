@@ -21,8 +21,10 @@ import { helper } from '@heyform-inc/utils'
 
 import { Select } from './Select'
 
-export interface TextAreaProps
-  extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> {
+export interface TextAreaProps extends Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'onChange'
+> {
   autoFocus?: boolean
   hasError?: boolean
   maxLength?: number
@@ -63,8 +65,10 @@ export interface TypeNumberValue {
   type: string
 }
 
-interface TypeNumberProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+interface TypeNumberProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange'
+> {
   value?: TypeNumberValue
   options: TypeNumberOption[]
   onChange?: (value: TypeNumberValue) => void
@@ -358,12 +362,13 @@ const TextArea: FC<TextAreaProps> = ({
   onEnter,
   ...restProps
 }) => {
+  const normalizedRawValue = helper.isNil(rawValue) ? '' : rawValue
   const lock = useRef(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isCountingEnabled = maxLength && maxLength > 0
 
-  const [value, setValue] = useState<Any>(rawValue as Any)
-  const [length, setLength] = useState(String(rawValue).length)
+  const [value, setValue] = useState<Any>(normalizedRawValue as Any)
+  const [length, setLength] = useState(String(normalizedRawValue).length)
 
   function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
     let newValue = getValue(event)
@@ -410,13 +415,13 @@ const TextArea: FC<TextAreaProps> = ({
   }
 
   useEffect(() => {
-    if (rawValue !== value) {
+    if (normalizedRawValue !== value) {
       lock.current = false
 
-      setValue(rawValue as Any)
-      setLength((rawValue as Any)?.length || 0)
+      setValue(normalizedRawValue as Any)
+      setLength((normalizedRawValue as Any)?.length || 0)
     }
-  }, [rawValue])
+  }, [normalizedRawValue])
 
   useEffect(() => {
     if (inputRef.current && autoFocus) {
@@ -433,7 +438,7 @@ const TextArea: FC<TextAreaProps> = ({
           hasError ? 'border-error focus:border-error' : 'border-input focus:border-input'
         )}
         data-slot="textarea"
-        value={value}
+        value={helper.isNil(value) ? '' : value}
         disabled={disabled}
         onInput={handleChange}
         onKeyDown={handleKeyDown}

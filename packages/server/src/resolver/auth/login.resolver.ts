@@ -28,20 +28,20 @@ export class LoginResolver {
     const user = await this.userService.findByEmail(input.email)
 
     if (helper.isEmpty(user)) {
-      throw new BadRequestException('The password does not match')
+      throw new BadRequestException('Incorrect email or password.')
     }
 
     const key = `limit:login:${user.id}`
 
     await this.authService.attemptsCheck(key, async () => {
       if (helper.isEmpty(user.password)) {
-        throw new BadRequestException('The password does not match')
+        throw new BadRequestException('Incorrect email or password.')
       }
 
       const verified = await comparePassword(input.password, user.password)
 
       if (!verified) {
-        throw new BadRequestException('The password does not match')
+        throw new BadRequestException('Incorrect email or password.')
       }
     })
 

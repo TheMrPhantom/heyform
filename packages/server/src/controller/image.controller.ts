@@ -8,10 +8,12 @@ import { Readable } from 'stream'
 import { ImageResizingDto } from '@dto'
 import { UPLOAD_DIR } from '@environments'
 import { qs } from '@heyform-inc/utils'
-import { md5 } from '@utils'
+import { Logger, md5 } from '@utils'
 
 @Controller()
 export class ImageController {
+  private readonly logger = new Logger(ImageController.name)
+
   @Get('/api/image')
   async index(@Query() input: ImageResizingDto, @Res() res: any) {
     const filePath = await this._getPath(input)
@@ -34,7 +36,15 @@ export class ImageController {
     const height = input.h ? Number(input.h) : undefined
 
     if (width > 0 || height > 0) {
-      fileBuffer = await sharp(result.body).resize({ width, height }).toBuffer()
+      try {
+        fileBuffer = await sharp(result.body).resize({ width, height }).toBuffer()
+      } catch (error: any) {
+        this.logger.warn(
+          `Failed to resize image from "${input.url}", serving original response instead: ${
+            error?.message || 'Unknown sharp error'
+          }`
+        )
+      }
     }
 
     const headers = {

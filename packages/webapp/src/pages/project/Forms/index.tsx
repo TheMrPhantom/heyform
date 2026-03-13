@@ -7,7 +7,6 @@ import { useParam } from '@/utils'
 import { helper } from '@heyform-inc/utils'
 
 import { Async, EmptyState, Repeat } from '@/components'
-import { ProjectShell } from '@/layouts'
 import { useAppStore } from '@/store'
 import { FormType } from '@/types'
 
@@ -40,34 +39,32 @@ export default function ProjectForms() {
   }
 
   return (
-    <ProjectShell>
-      <Async
-        fetch={fetch}
-        refreshDeps={[projectId]}
-        loader={
-          <div className="hf-card divide-y divide-[#e5e7eb]">
-            <Repeat count={3}>
-              <FormItem.Skeleton />
-            </Repeat>
-          </div>
-        }
-        emptyRender={() => (
-          <div className="mt-4">
-            <EmptyState
-              headline={t('project.forms.headline')}
-              subHeadline={t('dashboard.pickTemplate')}
-              buttonTitle={t('form.creation.title')}
-              onClick={() => openModal('CreateFormModal')}
-            />
-          </div>
-        )}
-      >
-        <div className="mt-4">
-          {forms.map(f => (
-            <FormItem key={f.id} form={f} onChange={handleChange} />
-          ))}
+    <Async
+      fetch={fetch}
+      refreshDeps={[projectId]}
+      loader={
+        <div className="hf-card divide-y divide-[#e5e7eb]">
+          <Repeat count={3}>
+            <FormItem.Skeleton />
+          </Repeat>
         </div>
-      </Async>
-    </ProjectShell>
+      }
+      emptyRender={() => (
+        <div className="mt-4">
+          <EmptyState
+            headline={t('project.forms.headline')}
+            subHeadline={t('dashboard.pickTemplate')}
+            buttonTitle={t('form.creation.title')}
+            onClick={() => openModal('CreateFormModal')}
+          />
+        </div>
+      )}
+    >
+      <div className="mt-4">
+        {forms.map(f => (
+          <FormItem key={f.id} form={f} onChange={handleChange} />
+        ))}
+      </div>
+    </Async>
   )
 }

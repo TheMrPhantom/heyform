@@ -49,7 +49,7 @@ const QuestionTypeItem: FC<QuestionTypeItemProps> = ({
     <li>
       <button
         type="button"
-        className="text-primary hover:bg-accent-light group flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 text-sm/6 font-medium aria-disabled:pointer-events-none aria-disabled:opacity-60"
+        className="text-primary hover:bg-accent-light group flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 text-sm aria-disabled:pointer-events-none aria-disabled:opacity-60"
         aria-disabled={isDisabled}
         onClick={handleClick}
       >

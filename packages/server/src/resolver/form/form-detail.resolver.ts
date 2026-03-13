@@ -1,9 +1,11 @@
 import { Auth, FormGuard, Team } from '@decorator'
 import { FormDetailInput, FormType, PublicFormType } from '@graphql'
-import { date } from '@heyform-inc/utils'
+import { date, helper } from '@heyform-inc/utils'
 import { FormModel, TeamModel } from '@model'
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { FormService, SubmissionService } from '@service'
+
+const DEFAULT_FORM_NAME = 'Untitled'
 
 @Resolver()
 @Auth()
@@ -30,8 +32,17 @@ export class FormDetailResolver {
     //@ts-ignore
     form.submissionCount = submissionCount
 
+    if (helper.isEmpty(form.name)) {
+      form.name = DEFAULT_FORM_NAME
+    }
+
     return form
   }
+}
+
+@Resolver()
+export class PublicFormResolver {
+  constructor(private readonly formService: FormService) {}
 
   @Query(returns => PublicFormType)
   async publicForm(@Args('input') input: FormDetailInput): Promise<PublicFormType> {
@@ -68,7 +79,7 @@ export class FormDetailResolver {
       teamId: form.teamId,
       projectId: form.projectId,
       memberId: form.memberId,
-      name: form.name,
+      name: helper.isEmpty(form.name) ? DEFAULT_FORM_NAME : form.name,
       description: form.description,
       interactiveMode: form.interactiveMode,
       kind: form.kind,

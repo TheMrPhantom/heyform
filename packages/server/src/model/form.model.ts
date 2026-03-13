@@ -34,7 +34,7 @@ export class FormModel extends Document {
   @Prop({ required: true })
   memberId: string
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 'Untitled' })
   name: string
 
   @Prop()

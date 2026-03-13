@@ -2,10 +2,12 @@ import { CaptchaKindEnum, FieldKindEnum, FormStatusEnum } from '@heyform-inc/sha
 
 import { Auth, ProjectGuard, Team, User } from '@decorator'
 import { CreateFormInput } from '@graphql'
-import { nanoid } from '@heyform-inc/utils'
+import { helper, nanoid } from '@heyform-inc/utils'
 import { TeamModel, UserModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { FormService } from '@service'
+
+const DEFAULT_FORM_NAME = 'Untitled'
 
 @Resolver()
 @Auth()
@@ -19,6 +21,8 @@ export class CreateFormResolver {
     @User() user: UserModel,
     @Args('input') input: CreateFormInput
   ): Promise<string> {
+    const name = helper.isValid(input.name?.trim()) ? input.name.trim() : DEFAULT_FORM_NAME
+
     const fields = [
       {
         id: nanoid(12),
@@ -62,7 +66,8 @@ export class CreateFormResolver {
       hiddenFields: [],
       version: 0,
       status: FormStatusEnum.NORMAL,
-      ...input
+      ...input,
+      name
     })
   }
 }

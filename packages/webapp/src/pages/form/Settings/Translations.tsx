@@ -54,7 +54,6 @@ export default function FormSettingsTranslations() {
         <Form.Item
           className="[&_[data-slot=content]]:pt-1.5"
           name="languages"
-          initialValue={tempSettings?.languages || []}
           label={
             <div className="flex items-start justify-between">
               <span>{t('form.settings.translations.translations.headline')}</span>

@@ -14,6 +14,8 @@ import { Button, useAlert } from '@/components'
 import { REDIRECT_COOKIE_NAME } from '@/consts'
 import { useAppStore, useUserStore, useWorkspaceStore } from '@/store'
 
+import { FormShell } from '../Form/FormShell'
+import { ProjectShell } from '../Project/ProjectShell'
 import ChangePasswordModal from './ChangePasswordModal'
 import ChangelogsModal from './ChangelogsModal'
 import CreateFormModal from './CreateFormModal'
@@ -293,7 +295,13 @@ const LayoutComponent: FC<LayoutProps> = ({ options, children }) => {
                 />
               </div>
 
-              {children}
+              {options?.formShell ? (
+                <FormShell>{children}</FormShell>
+              ) : options?.projectShell ? (
+                <ProjectShell>{children}</ProjectShell>
+              ) : (
+                children
+              )}
             </div>
           </div>
         </main>

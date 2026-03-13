@@ -1,7 +1,7 @@
 import Router, { Route } from '@heyooo-inc/react-router'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { ReactNode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { Root, createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Navigate } from 'react-router-dom'
@@ -59,6 +59,8 @@ const App = ({ routes }: { routes: Route[] }) => {
   )
 }
 
+let root: Root | undefined
+
 async function loadRuntimeConfig() {
   try {
     const response = await fetch('/api/config', {
@@ -80,8 +82,13 @@ async function bootstrap() {
   await loadRuntimeConfig()
 
   const { default: routes } = await import('@/routes')
+  const container = document.getElementById('root')!
 
-  createRoot(document.getElementById('root')!).render(<App routes={routes as Route[]} />)
+  if (!root) {
+    root = createRoot(container)
+  }
+
+  root.render(<App routes={routes as Route[]} />)
 }
 
 bootstrap()
