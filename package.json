@@ -16,10 +16,10 @@
     "build:webapp": "pnpm --filter ./packages/webapp build",
     "format": "prettier --write \"packages/**/*.{js,ts,tsx,css}\"",
     "lint": "node scripts/run-oxlint.js packages",
-    "postinstall": "npx simple-git-hooks"
+    "postinstall": "simple-git-hooks"
   },
   "simple-git-hooks": {
-    "pre-commit": "npx lint-staged --concurrent false"
+    "pre-commit": "if ! command -v node >/dev/null 2>&1; then for d in \"$HOME\"/.nvm/versions/node/*/bin; do [ -d \"$d\" ] && PATH=\"$d:$PATH\"; done; export PATH; fi; ./node_modules/.bin/lint-staged --concurrent false"
   },
   "lint-staged": {
     "*.{js,json}": [
