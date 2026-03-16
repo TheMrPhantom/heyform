@@ -27,6 +27,7 @@ interface RichTextProps extends Omit<ComponentProps, 'onChange'> {
 }
 
 const MENTION_TRIGGER = '@'
+const RICH_TEXT_TOOLBAR_SELECTOR = '[data-rich-text-toolbar="true"]'
 
 export const RichText: FC<RichTextProps> = ({
   className,
@@ -115,6 +116,12 @@ export const RichText: FC<RichTextProps> = ({
   }
 
   function handleToolbarSelectionChange() {
+    const activeElement = document.activeElement
+
+    if (activeElement instanceof HTMLElement && activeElement.closest(RICH_TEXT_TOOLBAR_SELECTOR)) {
+      return
+    }
+
     const sel = window.getSelection()
 
     if (!sel || sel.rangeCount < 1) {

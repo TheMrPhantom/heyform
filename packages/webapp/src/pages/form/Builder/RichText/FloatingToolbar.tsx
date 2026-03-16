@@ -127,6 +127,7 @@ export const FloatingToolbar: FC<FloatingToolbarProps> = ({
       <div className="floating-toolbar">
         <div className="floating-toolbar-mask" onClick={onClose} />
         <div
+          data-rich-text-toolbar="true"
           className="floating-toolbar-container bg-foreground flex items-center rounded-md px-2 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
           style={portalStyle}
           {...restProps}
