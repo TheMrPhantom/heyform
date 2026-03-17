@@ -56,31 +56,31 @@ export class FormModel extends Document {
   })
   kind: FormKindEnum
 
-  @Prop()
+  @Prop({ type: Object })
   settings?: FormSettings
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   fields?: FormField[]
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   hiddenFields?: HiddenField[]
 
   @Prop({ type: Map, default: {} })
   translations?: IForModel['translations']
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   logics?: Logic[]
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   variables?: Variable[]
 
   @Prop({ default: 0 })
   fieldsUpdatedAt?: number
 
-  @Prop()
+  @Prop({ type: Object })
   themeSettings?: ThemeSettings
 
-  @Prop()
+  @Prop({ type: Object })
   stripeAccount?: StripeAccount
 
   @Prop({ default: -1 })

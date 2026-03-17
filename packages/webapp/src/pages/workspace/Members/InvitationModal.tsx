@@ -65,36 +65,41 @@ export default function InvitationModal() {
           {(fields, { add, remove }) => (
             <>
               <div className="space-y-2">
-                {fields.map((field, index) => (
-                  <div key={field.key + index} className="flex items-start gap-x-1">
-                    <Form.Item
-                      className="flex-1"
-                      {...field}
-                      rules={[
-                        {
-                          required: true,
-                          message: t('login.email.required')
-                        },
-                        {
-                          type: 'email',
-                          message: t('login.email.invalid')
-                        }
-                      ]}
-                    >
-                      <Input placeholder="name@example.com" />
-                    </Form.Item>
+                {fields.map((field, index) => {
+                  const { key, ...fieldProps } = field
 
-                    {fields.length > 1 && (
-                      <Button.Link
-                        className="text-secondary hover:text-primary"
-                        iconOnly
-                        onClick={() => remove(index)}
+                  return (
+                    <div key={key} className="flex items-start gap-x-1">
+                      <Form.Item
+                        key={key}
+                        className="flex-1"
+                        {...fieldProps}
+                        rules={[
+                          {
+                            required: true,
+                            message: t('login.email.required')
+                          },
+                          {
+                            type: 'email',
+                            message: t('login.email.invalid')
+                          }
+                        ]}
                       >
-                        <IconX className="h-5 w-5" />
-                      </Button.Link>
-                    )}
-                  </div>
-                ))}
+                        <Input placeholder="name@example.com" />
+                      </Form.Item>
+
+                      {fields.length > 1 && (
+                        <Button.Link
+                          className="text-secondary hover:text-primary"
+                          iconOnly
+                          onClick={() => remove(index)}
+                        >
+                          <IconX className="h-5 w-5" />
+                        </Button.Link>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="mt-6 flex items-center justify-between">

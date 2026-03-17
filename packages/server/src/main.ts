@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
+import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import * as rateLimit from 'express-rate-limit'
 import * as helmet from 'helmet'
@@ -13,12 +14,14 @@ import { Logger, hbs } from '@utils'
 
 import { AppModule } from './app.module'
 import { AllExceptionsFilter } from './common/filter'
-import './common/polyfill/node-util'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false
   })
+
+  // Apollo Server 4 expects req.body to be populated before the GraphQL middleware runs.
+  app.use('/graphql', bodyParser.json({ limit: '1mb' }))
 
   // Verify all params
   app.useGlobalPipes(

@@ -15,7 +15,7 @@ export class BrandKitModel extends Document {
   @Prop()
   logo: string
 
-  @Prop()
+  @Prop({ type: Object })
   theme: FormTheme
 }
 

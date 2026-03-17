@@ -60,12 +60,12 @@ export class ImageResizingDto {
   @Validate(IsAllowedImageUrlConstraint)
   url: string
 
-  @Transform(parseInt)
+  @Transform(({ value }) => parseInt(value, 10))
   @IsInt()
   @IsOptional()
   w?: number
 
-  @Transform(parseInt)
+  @Transform(({ value }) => parseInt(value, 10))
   @IsInt()
   @IsOptional()
   h?: number

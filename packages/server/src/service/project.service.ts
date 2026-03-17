@@ -57,14 +57,14 @@ export class ProjectService {
       },
       updates
     )
-    return !!result.ok
+    return result.acknowledged
   }
 
   public async delete(id: string): Promise<boolean> {
     const result = await this.projectModel.deleteOne({
       _id: id
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async findMemberById(
@@ -98,19 +98,8 @@ export class ProjectService {
   }
 
   public async memberCount(projectId: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      this.projectMemberModel.countDocuments(
-        {
-          projectId
-        },
-        (err, count) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(count)
-          }
-        }
-      )
+    return this.projectMemberModel.countDocuments({
+      projectId
     })
   }
 
@@ -130,7 +119,7 @@ export class ProjectService {
       projectId,
       memberId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async deleteMembers(projectId: string, memberIds: string[]): Promise<boolean> {
@@ -140,7 +129,7 @@ export class ProjectService {
         $in: memberIds
       }
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async deleteMemberInProjects(projectIds: string[], memberId: string): Promise<boolean> {
@@ -150,14 +139,14 @@ export class ProjectService {
       },
       memberId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async deleteAllMemberInProject(projectId: string): Promise<boolean> {
     const result = await this.projectMemberModel.deleteMany({
       projectId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   async createByNewTeam(teamId: string, ownerId: string, projectName: string): Promise<void> {

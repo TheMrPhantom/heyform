@@ -18,7 +18,12 @@ export class SendResetPasswordEmailResolver {
 
   @Mutation(returns => Boolean)
   @UseGuards(GqlThrottlerGuard)
-  @Throttle(5, hs('1h'))
+  @Throttle({
+    default: {
+      limit: 5,
+      ttl: hs('1h')
+    }
+  })
   async sendResetPasswordEmail(
     @Args('input') input: SendResetPasswordEmailInput
   ): Promise<boolean> {

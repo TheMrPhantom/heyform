@@ -130,6 +130,6 @@ export class FormAnalyticService {
       })
     }
 
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 }

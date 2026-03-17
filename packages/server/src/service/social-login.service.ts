@@ -94,7 +94,7 @@ export class SocialLoginService {
     const result = await this.userSocialAccountModel.deleteOne({
       userId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   async create(data: UserSocialAccountModel | any): Promise<string | undefined> {

@@ -155,6 +155,6 @@ export class FormReportService {
       },
       updates
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 }

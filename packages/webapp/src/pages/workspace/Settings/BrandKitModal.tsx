@@ -143,10 +143,6 @@ const ModalComponent = () => {
                   {
                     type: 'url',
                     message: t('settings.branding.logo.invalid')
-                  },
-                  {
-                    required: true,
-                    message: t('settings.branding.logo.required')
                   }
                 ]}
               >

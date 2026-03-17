@@ -52,7 +52,7 @@ export class TeamService {
       },
       updates
     )
-    return !!result.ok
+    return result.acknowledged
   }
 
   public async updateAll(ids: string[], updates: Record<string, any>): Promise<boolean> {
@@ -64,14 +64,14 @@ export class TeamService {
       },
       updates
     )
-    return result.n > 0
+    return result.matchedCount > 0
   }
 
   public async delete(id: string): Promise<boolean> {
     const result = await this.teamModel.deleteOne({
       _id: id
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async findMemberById(teamId: string, memberId: string): Promise<TeamMemberModel | null> {
@@ -100,19 +100,8 @@ export class TeamService {
   }
 
   public async memberCount(teamId: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      this.teamMemberModel.countDocuments(
-        {
-          teamId
-        },
-        (err, count) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(count)
-          }
-        }
-      )
+    return this.teamMemberModel.countDocuments({
+      teamId
     })
   }
 
@@ -150,7 +139,7 @@ export class TeamService {
       },
       updates
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 
   public async deleteMember(teamId: string, memberId: string): Promise<boolean> {
@@ -158,14 +147,14 @@ export class TeamService {
       teamId,
       memberId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async deleteAllMemberInTeam(teamId: string): Promise<boolean> {
     const result = await this.teamMemberModel.deleteMany({
       teamId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   async findInvitations(teamId: string, emails?: string[]): Promise<TeamInvitationModel[]> {

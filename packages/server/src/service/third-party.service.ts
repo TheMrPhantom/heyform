@@ -48,7 +48,7 @@ export class ThirdPartyService {
       },
       updates
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 
   public async createOrUpdate(
@@ -80,6 +80,6 @@ export class ThirdPartyService {
     const result = await this.thirdPartyOauthModel.deleteOne({
       _id: id
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 }

@@ -17,7 +17,7 @@ export interface ProjectType {
 
 export interface BrandKitType {
   id: string
-  logo: string
+  logo?: string
   theme: FormTheme
 }
 

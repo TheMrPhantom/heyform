@@ -27,7 +27,7 @@ export class UserActivityModel extends Document {
   @Prop({ required: true })
   ip: string
 
-  @Prop()
+  @Prop({ type: Object })
   userAgent: UserAgent
 
   @Prop()

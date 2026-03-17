@@ -82,8 +82,9 @@ export class TeamCdnTokenInput {
 
 @InputType()
 export class CreateBrandKitInput extends TeamDetailInput {
-  @Field()
+  @Field({ nullable: true })
   @IsUrl()
+  @IsOptional()
   logo: string
 
   @Field(type => GraphQLJSONObject)
@@ -208,8 +209,8 @@ class BrandKitType {
   @Field()
   id: string
 
-  @Field()
-  logo: string
+  @Field({ nullable: true })
+  logo?: string
 
   @Field(type => GraphQLJSONObject)
   theme: Record<string, any>

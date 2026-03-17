@@ -1,5 +1,3 @@
-import { Promise } from 'mongoose'
-
 import { Auth, FormGuard } from '@decorator'
 import { FormAnalyticInput, FormAnalyticResult, FormAnalyticType } from '@graphql'
 import { date, helper, parseJson } from '@heyform-inc/utils'

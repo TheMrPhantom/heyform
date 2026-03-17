@@ -50,7 +50,7 @@ export class SubmissionIpLimitService {
         expiredAt: expiredAt === 0 || isTmpRecord ? expiredAt : undefined
       }
 
-      await this.submissionIpLimitModel.update(
+      await this.submissionIpLimitModel.updateOne(
         {
           _id: limit.id
         },
@@ -79,6 +79,6 @@ export class SubmissionIpLimitService {
         $in: ids
       }
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 }

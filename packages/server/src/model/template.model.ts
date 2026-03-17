@@ -42,13 +42,13 @@ export class TemplateModel extends Document {
   })
   kind: FormKindEnum
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   fields?: FormField[]
 
   @Prop()
   fieldsUpdatedAt?: number
 
-  @Prop()
+  @Prop({ type: Object })
   themeSettings?: ThemeSettings
 
   @Prop({ required: false, default: 0 })

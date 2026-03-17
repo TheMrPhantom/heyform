@@ -200,22 +200,11 @@ export class SubmissionService {
   }
 
   public countAll(formIds: string[], filters: Record<string, any> = {}): Promise<number> {
-    return new Promise((resolve, reject) => {
-      this.submissionModel.countDocuments(
-        {
-          formId: {
-            $in: formIds
-          },
-          ...filters
-        },
-        (err, count) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(count)
-          }
-        }
-      )
+    return this.submissionModel.countDocuments({
+      formId: {
+        $in: formIds
+      },
+      ...filters
     })
   }
 
@@ -282,7 +271,7 @@ export class SubmissionService {
     const result = await this.submissionModel.updateOne(conditions, {
       status: SubmissionStatusEnum.PRIVATE
     })
-    return result?.n > 0
+    return result.matchedCount > 0
   }
 
   public async deleteByIds(formId: string, submissionIds?: string[]): Promise<boolean> {
@@ -297,7 +286,7 @@ export class SubmissionService {
     }
 
     const result = await this.submissionModel.deleteMany(conditions)
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async deleteAll(formId: string | string[]): Promise<boolean> {
@@ -312,7 +301,7 @@ export class SubmissionService {
     }
 
     const result = await this.submissionModel.deleteMany(conditions)
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async updateCategory({
@@ -331,7 +320,7 @@ export class SubmissionService {
         category
       }
     )
-    return result?.n > 0
+    return result.matchedCount > 0
   }
 
   async findByIds(formId: string, submissionIds: string[]): Promise<SubmissionModel[]> {
@@ -390,7 +379,7 @@ export class SubmissionService {
         }
       }
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 
   async updateAnswer(submissionId: string, answer: Answer): Promise<boolean> {
@@ -409,7 +398,7 @@ export class SubmissionService {
         $set: getUpdateQuery(updates, 'answers.$', false)
       }
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 
   async analytic(formId: string, startAt: number, endAt: number) {

@@ -2,7 +2,7 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
-  Inject,
+  Injectable,
   UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
@@ -18,16 +18,14 @@ export enum PermissionScopeEnum {
   form
 }
 
+@Injectable()
 export class PermissionGuard implements CanActivate {
-  private readonly reflector: Reflector
-
   constructor(
-    @Inject('TeamService') private readonly teamService: TeamService,
-    @Inject('ProjectService') private readonly projectService: ProjectService,
-    @Inject('FormService') private readonly formService: FormService
-  ) {
-    this.reflector = new Reflector()
-  }
+    private readonly reflector: Reflector,
+    private readonly teamService: TeamService,
+    private readonly projectService: ProjectService,
+    private readonly formService: FormService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context)

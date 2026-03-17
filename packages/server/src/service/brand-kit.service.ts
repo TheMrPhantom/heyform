@@ -37,6 +37,6 @@ export class BrandKitService {
       },
       updates
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 }

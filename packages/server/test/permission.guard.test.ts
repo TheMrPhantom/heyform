@@ -1,3 +1,4 @@
+import { Reflector } from '@nestjs/core'
 import * as assert from 'assert'
 import 'reflect-metadata'
 
@@ -45,7 +46,12 @@ function createGuard({
     findById: async () => null
   }
 
-  return new PermissionGuard(teamService as any, projectService as any, formService as any)
+  return new PermissionGuard(
+    new Reflector(),
+    teamService as any,
+    projectService as any,
+    formService as any
+  )
 }
 
 async function testCollaboratorCanPassTeamGuard() {

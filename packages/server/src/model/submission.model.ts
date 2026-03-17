@@ -33,13 +33,13 @@ export class SubmissionModel extends Document {
   @Prop({ required: true })
   title: string
 
-  @Prop()
+  @Prop({ type: [Object], default: [] })
   answers: Answer[]
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   hiddenFields?: HiddenFieldAnswer[]
 
-  @Prop({ default: [] })
+  @Prop({ type: [Object], default: [] })
   variables?: Variable[]
 
   @Prop()
@@ -51,10 +51,9 @@ export class SubmissionModel extends Document {
   @Prop()
   ip: string
 
-  @Prop()
+  @Prop({ type: Object })
   userAgent: UserAgent
 
-  @Prop()
   @Prop({
     type: Number,
     required: true,

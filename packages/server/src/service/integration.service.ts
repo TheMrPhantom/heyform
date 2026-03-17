@@ -52,12 +52,12 @@ export class IntegrationService {
       },
       updates
     )
-    return !!result?.ok
+    return result.acknowledged
   }
 
   async updateAllBy(conditions: Record<string, any>, updates: Record<string, any>): Promise<any> {
     const result = await this.integrationModel.updateMany(conditions, updates)
-    return result?.n > 0
+    return result.matchedCount > 0
   }
 
   async createOrUpdate(
@@ -84,7 +84,7 @@ export class IntegrationService {
       formId,
       appId
     })
-    return result?.n > 0
+    return (result.deletedCount ?? 0) > 0
   }
 
   public async addQueue(form: FormModel, submissionId: string): Promise<void> {
