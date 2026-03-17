@@ -26,7 +26,7 @@
     "@heyform-inc/shared-types-enums": "^1.2.2",
     "@heyform-inc/utils": "^1.2.2",
     "@heyooo-inc/env": "^0.0.1",
-    "@apollo/server": "4.12.2",
+    "@apollo/server": "4.13.0",
     "@graphql-tools/utils": "10.9.1",
     "@nestjs/apollo": "12.2.2",
     "@nestjs/bull": "10.2.3",
