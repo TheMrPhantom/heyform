@@ -1,6 +1,7 @@
 import { FieldKindEnum, FileUploadValue, FormModel } from '@heyform-inc/shared-types-enums'
 
 import { UploadService } from '@/services'
+import { flattenFields } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
 interface UploaderField {
@@ -15,7 +16,7 @@ export class Uploader {
   private fields: UploaderField[] = []
 
   constructor(form: FormModel, values: Any) {
-    form.fields!.forEach(row => {
+    flattenFields(form.fields).forEach(row => {
       if (UPLOAD_FIELD_KINDS.includes(row.kind)) {
         let value = values[row.id]
 
