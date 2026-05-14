@@ -274,7 +274,7 @@ const OpinionScaleItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell 
     return null
   }
 
-  const total = field.properties?.total || field.kind === FieldKindEnum.RATING ? 5 : 10
+  const total = field.properties?.total ?? (field.kind === FieldKindEnum.RATING ? 5 : 10)
 
   return (
     <div
