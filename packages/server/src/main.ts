@@ -5,10 +5,16 @@ import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import * as rateLimit from 'express-rate-limit'
 import * as helmet from 'helmet'
-import { join } from 'path'
+import { extname } from 'path'
 import * as serveStatic from 'serve-static'
 
-import { APP_LISTEN_HOSTNAME, APP_LISTEN_PORT, STATIC_DIR, VIEW_DIR } from '@environments'
+import {
+  APP_LISTEN_HOSTNAME,
+  APP_LISTEN_PORT,
+  STATIC_DIR,
+  UPLOAD_DIR,
+  VIEW_DIR
+} from '@environments'
 import { helper, ms } from '@heyform-inc/utils'
 import { Logger, hbs } from '@utils'
 
@@ -45,26 +51,44 @@ async function bootstrap() {
   app.set('trust proxy', 1)
 
   // Static assets
+  app.use('/static/upload', (req, res, next) => {
+    if (['.svg', '.svgz'].includes(extname(req.path).toLowerCase())) {
+      return res.status(403).end()
+    }
+
+    next()
+  })
+
+  app.use(
+    '/static/upload',
+    serveStatic(UPLOAD_DIR, {
+      fallthrough: false,
+      maxAge: '30d',
+      extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'],
+      setHeaders: res => {
+        const { attname } = res.req.query
+
+        if (helper.isValid(attname)) {
+          res.setHeader('Content-Disposition', `attachment; filename="${attname}"`)
+        }
+
+        res.setHeader('X-Content-Type-Options', 'nosniff')
+      }
+    })
+  )
+
   app.use(
     '/static',
     serveStatic(STATIC_DIR, {
       maxAge: '30d',
       extensions: ['jpg', 'jpeg', 'bmp', 'webp', 'gif', 'png', 'svg', 'js', 'css'],
-      setHeaders: (res, path) => {
+      setHeaders: res => {
         const { attname } = res.req.query
 
         if (helper.isValid(attname)) {
           res.setHeader('Content-Disposition', `attachment; filename="${attname}"`)
         }
       }
-    })
-  )
-
-  app.use(
-    '/static/upload',
-    serveStatic(join(process.cwd(), 'uploads'), {
-      maxAge: '30d',
-      extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif']
     })
   )
 

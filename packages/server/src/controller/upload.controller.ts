@@ -12,6 +12,9 @@ import { getMulterStorage } from '@config'
 import { APP_HOMEPAGE_URL, S3_PUBLIC_URL, UPLOAD_FILE_SIZE, UPLOAD_FILE_TYPES } from '@environments'
 import { helper } from '@heyform-inc/utils'
 
+const BLOCKED_UPLOAD_EXTENSIONS = new Set(['.svg', '.svgz'])
+const BLOCKED_UPLOAD_MIME_TYPES = new Set(['image/svg+xml', 'application/svg+xml'])
+
 @Controller()
 export class UploadController {
   @Post('/api/upload')
@@ -21,7 +24,14 @@ export class UploadController {
         fileSize: UPLOAD_FILE_SIZE
       },
       fileFilter: (req: any, file: any, cb: any) => {
-        if (UPLOAD_FILE_TYPES.includes(file.mimetype)) {
+        const extension = extname(file.originalname).toLowerCase()
+        const mimeType = String(file.mimetype || '').toLowerCase()
+
+        if (
+          !BLOCKED_UPLOAD_EXTENSIONS.has(extension) &&
+          !BLOCKED_UPLOAD_MIME_TYPES.has(mimeType) &&
+          UPLOAD_FILE_TYPES.includes(mimeType)
+        ) {
           cb(null, true)
         } else {
           cb(new BadRequestException(`Unsupported file type ${extname(file.originalname)}`), false)

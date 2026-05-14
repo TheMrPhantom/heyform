@@ -45,8 +45,7 @@ export const commonFileMimeTypes = [
   mime('.pptx'),
   mime('.pdf'),
   mime('.mp4'),
-  mime('.wmv'),
-  mime('.svg')
+  mime('.wmv')
 ] as unknown as string[]
 
 export const IMAGE_MIME_TYPES = commonImageMimeTypes

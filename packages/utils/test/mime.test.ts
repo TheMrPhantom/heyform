@@ -12,6 +12,7 @@ test('common image mime type', () => {
 
 test('common file mime type', () => {
   expect(commonFileMimeTypes).toMatchSnapshot()
+  expect(commonFileMimeTypes).not.toContain('image/svg+xml')
 })
 
 test('mime', () => {
