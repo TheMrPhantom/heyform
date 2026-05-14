@@ -36,7 +36,11 @@ export class UpdateUserPasswordResolver {
       password: await passwordHash(input.newPassword, BCRYPT_SALT)
     })
 
-    this.mailService.passwordChangeAlert(user.email)
+    if (result) {
+      await this.authService.invalidateSessions(user.id)
+      this.mailService.passwordChangeAlert(user.email)
+    }
+
     return result
   }
 }

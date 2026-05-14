@@ -59,6 +59,10 @@ export class AuthService {
     return `sess:${userId}`
   }
 
+  async invalidateSessions(userId: string): Promise<void> {
+    await this.redisService.del(AuthService.sessionKey(userId))
+  }
+
   async devices(userId: string): Promise<string[]> {
     const key = AuthService.sessionKey(userId)
     const result = await this.redisService.hget({
