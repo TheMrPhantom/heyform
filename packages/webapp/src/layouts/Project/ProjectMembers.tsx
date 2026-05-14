@@ -1,14 +1,19 @@
+import { IconDots } from '@tabler/icons-react'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { WorkspaceService } from '@/services'
 import { useParam } from '@/utils'
 
-import { Async, Avatar, Repeat, Tooltip } from '@/components'
-import { useWorkspaceStore } from '@/store'
+import { Async, Avatar, Button, Repeat, Tooltip } from '@/components'
+import { useAppStore, useWorkspaceStore } from '@/store'
 
 export default function ProjectMembers() {
+  const { t } = useTranslation()
+
   const { workspaceId } = useParam()
   const { project, members, setMembers } = useWorkspaceStore()
+  const { openModal } = useAppStore()
 
   const exists = useMemo(
     () => members.filter(m => project?.members.includes(m.id)),
@@ -45,6 +50,18 @@ export default function ProjectMembers() {
             </Tooltip>
           ))}
         </Async>
+
+        <Tooltip label={t('project.members.headline')}>
+          <Button.Link
+            className="ring-foreground bg-foreground relative z-10"
+            size="md"
+            iconOnly
+            aria-label={t('project.members.headline')}
+            onClick={() => openModal('ProjectMembersModal')}
+          >
+            <IconDots className="h-5 w-5" />
+          </Button.Link>
+        </Tooltip>
       </div>
     </div>
   )
