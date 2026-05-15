@@ -60,6 +60,7 @@ export { UpdateFormHiddenFieldsResolver } from './form/update-form-hidden-fields
 export { PublishFormResolver } from './form/publish-form.resolver'
 export { MoveFormResolver } from './form/move-form.resolver'
 export { FormIntegrationsResolver } from './form/form-integrations.resolver'
+export { AIResolver } from './form/ai.resolver'
 
 export { OpenFormResolver } from './endpoint/open-form.resolver'
 export { CompleteSubmissionResolver } from './endpoint/complete-submission.resolver'

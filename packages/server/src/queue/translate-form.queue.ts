@@ -7,6 +7,7 @@ import { OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_GPT_MODEL } from '@environments
 import { htmlUtils } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 import { FormService } from '@service'
+import { parseAIJson } from '@utils'
 
 import { BaseQueue } from './base.queue'
 
@@ -99,7 +100,7 @@ export class TranslateFormQueue extends BaseQueue {
       })
 
       if (helper.isValidArray(choices) && helper.isValid(choices[0].message.content)) {
-        const translation = JSON.parse(choices[0].message.content)
+        const translation = parseAIJson(choices[0].message.content)
 
         Object.keys(translation).forEach(id => {
           if (translation[id].title) {
