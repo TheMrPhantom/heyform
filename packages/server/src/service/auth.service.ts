@@ -4,6 +4,7 @@ import { Model } from 'mongoose'
 
 import { RedisService } from './redis.service'
 import {
+  COOKIE_DEVICE_ID_NAME,
   COOKIE_LOGIN_IN_NAME,
   COOKIE_SESSION_NAME,
   CookieOptionsFactory,
@@ -17,7 +18,15 @@ import {
   VERIFY_EMAIL_RESEND_COOLDOWN,
   VERIFY_EMAIL_RESEND_DAILY_LIMIT
 } from '@environments'
-import { helper, hs, isDateExpired, parseNumber, random, timestamp } from '@heyform-inc/utils'
+import {
+  helper,
+  hs,
+  isDateExpired,
+  nanoid,
+  parseNumber,
+  random,
+  timestamp
+} from '@heyform-inc/utils'
 import { UserActivityKindEnum, UserActivityModel } from '@model'
 import { aesDecryptObject, aesEncryptObject } from '@utils'
 import { UserAgent } from '@utils'
@@ -46,6 +55,8 @@ const DEFAULT_ATTEMPTS_OPTIONS = {
   expire: '15m'
 }
 const NUMERIC_ALPHABET = '0123456789'
+const OAUTH_STATE_COOKIE_NAME = 'HEYFORM_OAUTH_STATE'
+const OAUTH_STATE_MAX_AGE = hs('10m')
 
 @Injectable()
 export class AuthService {
@@ -70,6 +81,76 @@ export class AuthService {
     })
 
     return Object.keys(result as object)
+  }
+
+  getDeviceId(req: any): string {
+    return req.cookies?.[COOKIE_DEVICE_ID_NAME] || req.headers?.['x-device-id'] || nanoid()
+  }
+
+  async createOAuthState(req: any, res: any, deviceId: string): Promise<string> {
+    const state = nanoid(32)
+    const key = `oauth_state:${state}`
+
+    await this.redisService.set({
+      key,
+      value: this.getDeviceId({
+        ...req,
+        headers: {
+          ...req.headers,
+          'x-device-id': deviceId
+        }
+      }),
+      duration: '10m'
+    })
+
+    res.cookie(
+      OAUTH_STATE_COOKIE_NAME,
+      state,
+      CookieOptionsFactory({
+        httpOnly: true,
+        maxAge: OAUTH_STATE_MAX_AGE,
+        path: '/connect',
+        sameSite: 'none',
+        secure: true
+      })
+    )
+
+    return state
+  }
+
+  async verifyOAuthState(req: any, res: any, state?: string): Promise<void> {
+    const cookieState = req.cookies?.[OAUTH_STATE_COOKIE_NAME]
+
+    if (helper.isEmpty(state) || state !== cookieState) {
+      throw new BadRequestException('Invalid OAuth state')
+    }
+
+    const key = `oauth_state:${state}`
+    const deviceId = await this.redisService.get(key)
+
+    if (helper.isEmpty(deviceId)) {
+      throw new BadRequestException('Invalid OAuth state')
+    }
+
+    req.headers = {
+      ...req.headers,
+      'x-device-id': deviceId
+    }
+    req.cookies = {
+      ...req.cookies,
+      [COOKIE_DEVICE_ID_NAME]: deviceId
+    }
+
+    await this.redisService.del(key)
+    res.clearCookie(
+      OAUTH_STATE_COOKIE_NAME,
+      CookieOptionsFactory({
+        maxAge: 0,
+        path: '/connect',
+        sameSite: 'none',
+        secure: true
+      })
+    )
   }
 
   async login({ res, userId, deviceId }: LoginOptions): Promise<void> {
