@@ -1,5 +1,7 @@
 import got from 'got'
 
+import { assertSafeOutboundUrl } from '@utils'
+
 export default {
   id: 'webhook',
   name: 'Webhook',
@@ -16,8 +18,11 @@ export default {
     }
   ],
   run: async ({ config, submission, form }) => {
+    const endpointUrl = await assertSafeOutboundUrl(config.endpointUrl)
+
     return got
-      .post(config.endpointUrl, {
+      .post(endpointUrl.toString(), {
+        followRedirect: false,
         json: {
           id: submission.id,
           formId: form.id,

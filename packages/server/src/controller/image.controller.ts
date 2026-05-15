@@ -5,10 +5,10 @@ import { resolve } from 'path'
 import * as sharp from 'sharp'
 import { Readable } from 'stream'
 
-import { ImageResizingDto } from '@dto'
+import { ALLOWED_IMAGE_HOSTS, ImageResizingDto } from '@dto'
 import { UPLOAD_DIR } from '@environments'
 import { qs } from '@heyform-inc/utils'
-import { Logger, md5 } from '@utils'
+import { Logger, assertSafeOutboundUrl, md5 } from '@utils'
 
 @Controller()
 export class ImageController {
@@ -27,7 +27,12 @@ export class ImageController {
       return createReadStream(filePath).pipe(res)
     }
 
-    const result = await got(input.url, {
+    const url = await assertSafeOutboundUrl(input.url, {
+      allowedHosts: ALLOWED_IMAGE_HOSTS
+    })
+
+    const result = await got(url.toString(), {
+      followRedirect: false,
       responseType: 'buffer'
     })
 

@@ -327,6 +327,9 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
+      validator:
+        specifier: 13.15.26
+        version: 13.15.26
       which-browser:
         specifier: 0.5.1
         version: 0.5.1
@@ -373,6 +376,9 @@ importers:
       '@types/nodemailer':
         specifier: 6.4.0
         version: 6.4.0
+      '@types/validator':
+        specifier: 13.15.0
+        version: 13.15.0
       '@typescript-eslint/eslint-plugin':
         specifier: 4.0.1
         version: 4.0.1(@typescript-eslint/parser@4.0.1(eslint@7.4.0)(typescript@5.4.5))(eslint@7.4.0)(typescript@5.4.5)

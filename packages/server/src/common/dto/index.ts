@@ -9,6 +9,12 @@ import {
   ValidatorConstraintInterface
 } from 'class-validator'
 
+import {
+  isAllowedHostname,
+  isLocalDevelopmentHost,
+  isLocalHostname,
+  isPrivateAddress
+} from '../../utils/outbound-url'
 import { APP_HOMEPAGE_URL, S3_PUBLIC_URL } from '@environments'
 
 function getHostname(url?: string): string | undefined {
@@ -23,9 +29,7 @@ function getHostname(url?: string): string | undefined {
   }
 }
 
-const ALLOWED_IMAGE_HOSTS = [
-  '127.0.0.1',
-  'localhost',
+export const ALLOWED_IMAGE_HOSTS = [
   'secure.gravatar.com',
   'googleusercontent.com',
   'images.unsplash.com',
@@ -40,9 +44,15 @@ class IsAllowedImageUrlConstraint implements ValidatorConstraintInterface {
     try {
       const hostname = new URL(url).hostname.toLowerCase()
 
-      return ALLOWED_IMAGE_HOSTS.some(
-        allowedHost => hostname === allowedHost || hostname.endsWith(`.${allowedHost}`)
-      )
+      if (isLocalDevelopmentHost(hostname)) {
+        return true
+      }
+
+      if (isLocalHostname(hostname) || isPrivateAddress(hostname)) {
+        return false
+      }
+
+      return ALLOWED_IMAGE_HOSTS.some(allowedHost => isAllowedHostname(hostname, [allowedHost]))
     } catch {
       return false
     }

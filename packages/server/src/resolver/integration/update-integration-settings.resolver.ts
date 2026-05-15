@@ -6,6 +6,7 @@ import { helper } from '@heyform-inc/utils'
 import { IntegrationStatusEnum } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { AppService, IntegrationService } from '@service'
+import { assertSafeOutboundUrl } from '@utils'
 
 @Resolver()
 @Auth()
@@ -25,6 +26,10 @@ export class UpdateIntegrationSettingsResolver {
 
     if (helper.isEmpty(input.config)) {
       throw new BadRequestException('Invalid attributes arguments')
+    }
+
+    if (app.id === 'webhook') {
+      await assertSafeOutboundUrl(input.config.endpointUrl)
     }
 
     await this.integrationService.createOrUpdate(input.formId, app.id, {
