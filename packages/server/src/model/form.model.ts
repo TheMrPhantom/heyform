@@ -43,7 +43,6 @@ export class FormModel extends Document {
   @Prop({
     type: Number,
     required: true,
-    enum: Object.values(InteractiveModeEnum),
     default: InteractiveModeEnum.GENERAL
   })
   interactiveMode: InteractiveModeEnum
@@ -51,7 +50,6 @@ export class FormModel extends Document {
   @Prop({
     type: Number,
     required: true,
-    enum: Object.values(FormKindEnum),
     default: FormKindEnum.SURVEY
   })
   kind: FormKindEnum
@@ -110,7 +108,6 @@ export class FormModel extends Document {
   @Prop({
     type: Number,
     required: true,
-    enum: Object.values(FormStatusEnum),
     default: FormStatusEnum.NORMAL
   })
   status: FormStatusEnum

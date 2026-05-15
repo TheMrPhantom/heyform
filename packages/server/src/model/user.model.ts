@@ -31,7 +31,7 @@ export class UserModel extends Document {
   @Prop()
   note?: string
 
-  @Prop({ default: UserLangEnum.EN, enum: Object.values(UserLangEnum) })
+  @Prop({ default: UserLangEnum.EN })
   lang?: UserLangEnum
 
   @Prop()

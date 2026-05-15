@@ -10,8 +10,7 @@ export class EmailTemplateModel extends Document {
 
   @Prop({
     type: String,
-    default: UserLangEnum.EN,
-    enum: Object.values(UserLangEnum)
+    default: UserLangEnum.EN
   })
   lang: UserLangEnum
 

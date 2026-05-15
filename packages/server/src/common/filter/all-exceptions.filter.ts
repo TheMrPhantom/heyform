@@ -15,14 +15,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name)
 
   catch(exception: Error, host: ArgumentsHost): any {
+    this.logger.error(exception, (exception as any).stack)
+
     const gqlCtx = GqlExecutionContext.create(host as any)
     const ctx = gqlCtx.getContext()
 
     if (helper.isValid(ctx.req)) {
-      if (!(exception instanceof HttpException)) {
-        this.logger.error(exception, exception.stack)
-      }
-
       return exception
     }
 
@@ -32,8 +30,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (!(exception instanceof HttpException)) {
       httpException = new InternalServerErrorException(exception.message)
-
-      this.logger.error(exception, exception.stack)
     }
 
     if (res.get('content-type') === 'text/event-stream') {
