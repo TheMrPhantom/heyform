@@ -4,6 +4,7 @@ import { RefObject, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/utils'
+import { htmlUtils } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
 import { FormFieldType } from '@/types'
@@ -11,6 +12,116 @@ import { FormFieldType } from '@/types'
 import { RichText } from '../../RichText'
 import { useStoreContext } from '../../store'
 import { Layout } from '../Layout'
+
+const ALLOWED_BLOCK_TAGS = ['div', 'h1', 'h2', 'h3', 'p', 'br']
+const ALLOWED_TAGS = [
+  'text',
+  'span',
+  'bold',
+  'strong',
+  'code',
+  'a',
+  'b',
+  'i',
+  'u',
+  's',
+  'mention',
+  'variable',
+  'hiddenfield',
+  ...ALLOWED_BLOCK_TAGS
+]
+const ALLOWED_ATTRIBUTES = [
+  'href',
+  'class',
+  'data-mention',
+  'data-variable',
+  'data-hiddenfield',
+  'contenteditable',
+  'id'
+]
+const UNSAFE_URL_PROTOCOL_REGEX = /^\s*(?:javascript|vbscript|data):/i
+
+function escapeText(value: unknown): string {
+  return String(value).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function escapeAttribute(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function sanitizeAttributes(attributes: Record<string, any> = {}): Record<string, string> {
+  const result: Record<string, string> = {}
+
+  for (const key of Object.keys(attributes)) {
+    if (!ALLOWED_ATTRIBUTES.includes(key)) {
+      continue
+    }
+
+    const value = String(attributes[key] || '')
+
+    if (key === 'href' && UNSAFE_URL_PROTOCOL_REGEX.test(value)) {
+      continue
+    }
+
+    result[key] = escapeAttribute(value)
+  }
+
+  return result
+}
+
+function sanitizeRichTextNode(node: unknown): any[] | string | undefined {
+  if (typeof node === 'string') {
+    return escapeText(node)
+  }
+
+  if (!Array.isArray(node)) {
+    return
+  }
+
+  const [tag, body, attributes] = node
+
+  if (!ALLOWED_TAGS.includes(tag)) {
+    return
+  }
+
+  const sanitizedBody = Array.isArray(body) ? body.map(sanitizeRichTextNode).filter(Boolean) : []
+  const sanitizedAttributes = sanitizeAttributes(attributes)
+  const sanitizedNode: any[] = [tag]
+
+  if (sanitizedBody.length > 0) {
+    sanitizedNode.push(sanitizedBody)
+  }
+
+  if (Object.keys(sanitizedAttributes).length > 0) {
+    if (sanitizedBody.length < 1) {
+      sanitizedNode.push([])
+    }
+
+    sanitizedNode.push(sanitizedAttributes)
+  }
+
+  return sanitizedNode
+}
+
+function sanitizeRichTextNodes(nodes: unknown[]): any[] {
+  return nodes.map(sanitizeRichTextNode).filter(Boolean)
+}
+
+function sanitizeRichTextHTML(value: unknown): string {
+  if (Array.isArray(value)) {
+    return htmlUtils.serialize(sanitizeRichTextNodes(value))
+  }
+
+  if (typeof value === 'string') {
+    return htmlUtils.serialize(sanitizeRichTextNodes(htmlUtils.parse(value)))
+  }
+
+  return ''
+}
 
 export interface BlockProps extends ComponentProps {
   field: FormFieldType
@@ -64,11 +175,11 @@ export const Block: FC<BlockProps> = ({
 
   useEffect(() => {
     if (titleRef.current) {
-      titleRef.current!.innerHTML = (field.title as string) || ''
+      titleRef.current!.innerHTML = sanitizeRichTextHTML(field.title)
     }
 
     if (descriptionRef.current) {
-      descriptionRef.current!.innerHTML = (field.description as string) || ''
+      descriptionRef.current!.innerHTML = sanitizeRichTextHTML(field.description)
     }
   }, [field.id])
 

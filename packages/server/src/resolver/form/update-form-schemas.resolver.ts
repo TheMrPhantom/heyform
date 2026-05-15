@@ -5,6 +5,7 @@ import { FormSchemasType, UpdateFormSchemasInput } from '@graphql'
 import { timestamp } from '@heyform-inc/utils'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { FormService } from '@service'
+import { sanitizeFormDrafts } from '@utils'
 
 @Resolver()
 @Auth()
@@ -24,8 +25,10 @@ export class UpdateFormSchemasResolver {
       })
     }
 
+    const drafts = sanitizeFormDrafts(input.drafts)
+
     const updates = {
-      _drafts: JSON.stringify(input.drafts),
+      _drafts: JSON.stringify(drafts),
       fieldsUpdatedAt: timestamp(),
       version: input.version + 1
     }
@@ -33,7 +36,7 @@ export class UpdateFormSchemasResolver {
     await this.formService.update(input.formId, updates)
 
     return {
-      drafts: input.drafts,
+      drafts,
       version: updates.version,
       canPublish: JSON.stringify(form) !== updates._drafts
     }

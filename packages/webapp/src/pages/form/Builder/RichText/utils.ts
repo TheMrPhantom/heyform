@@ -124,7 +124,7 @@ export function insertClipboardText(event: any) {
 }
 
 export function insertClipboardHTML(event: ClipboardEvent) {
-  document.execCommand('insertHTML', false, event.clipboardData.getData('text'))
+  document.execCommand('insertText', false, event.clipboardData.getData('text'))
 }
 
 export function replaceTriggerText(

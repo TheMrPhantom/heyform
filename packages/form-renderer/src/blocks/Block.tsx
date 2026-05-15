@@ -25,6 +25,116 @@ const SPLIT_LAYOUTS = [
   FieldLayoutAlignEnum.SPLIT_RIGHT
 ]
 
+const ALLOWED_BLOCK_TAGS = ['div', 'h1', 'h2', 'h3', 'p', 'br']
+const ALLOWED_TAGS = [
+  'text',
+  'span',
+  'bold',
+  'strong',
+  'code',
+  'a',
+  'b',
+  'i',
+  'u',
+  's',
+  'mention',
+  'variable',
+  'hiddenfield',
+  ...ALLOWED_BLOCK_TAGS
+]
+const ALLOWED_ATTRIBUTES = [
+  'href',
+  'class',
+  'data-mention',
+  'data-variable',
+  'data-hiddenfield',
+  'contenteditable',
+  'id'
+]
+const UNSAFE_URL_PROTOCOL_REGEX = /^\s*(?:javascript|vbscript|data):/i
+
+function escapeText(value: unknown): string {
+  return String(value).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function escapeAttribute(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function sanitizeAttributes(attributes: Record<string, any> = {}): Record<string, string> {
+  const result: Record<string, string> = {}
+
+  for (const key of Object.keys(attributes)) {
+    if (!ALLOWED_ATTRIBUTES.includes(key)) {
+      continue
+    }
+
+    const value = String(attributes[key] || '')
+
+    if (key === 'href' && UNSAFE_URL_PROTOCOL_REGEX.test(value)) {
+      continue
+    }
+
+    result[key] = escapeAttribute(value)
+  }
+
+  return result
+}
+
+function sanitizeRichTextNode(node: unknown): any[] | string | undefined {
+  if (typeof node === 'string') {
+    return escapeText(node)
+  }
+
+  if (!Array.isArray(node)) {
+    return
+  }
+
+  const [tag, body, attributes] = node
+
+  if (!ALLOWED_TAGS.includes(tag)) {
+    return
+  }
+
+  const sanitizedBody = Array.isArray(body) ? body.map(sanitizeRichTextNode).filter(Boolean) : []
+  const sanitizedAttributes = sanitizeAttributes(attributes)
+  const sanitizedNode: any[] = [tag]
+
+  if (sanitizedBody.length > 0) {
+    sanitizedNode.push(sanitizedBody)
+  }
+
+  if (Object.keys(sanitizedAttributes).length > 0) {
+    if (sanitizedBody.length < 1) {
+      sanitizedNode.push([])
+    }
+
+    sanitizedNode.push(sanitizedAttributes)
+  }
+
+  return sanitizedNode
+}
+
+function sanitizeRichTextNodes(nodes: unknown[]): any[] {
+  return nodes.map(sanitizeRichTextNode).filter(Boolean)
+}
+
+function sanitizeRichTextHTML(value: unknown): string {
+  if (Array.isArray(value)) {
+    return htmlUtils.serialize(sanitizeRichTextNodes(value))
+  }
+
+  if (typeof value === 'string') {
+    return htmlUtils.serialize(sanitizeRichTextNodes(htmlUtils.parse(value)))
+  }
+
+  return ''
+}
+
 export const Block: FC<BlockProps> = ({
   className,
   field: rawField,
@@ -41,8 +151,12 @@ export const Block: FC<BlockProps> = ({
   const field: IFormField = useMemo(
     () => ({
       ...rawField,
-      title: replaceHTML(rawField.title as string, values, fields, query, variables),
-      description: replaceHTML(rawField.description as string, values, fields, query, variables)
+      title: sanitizeRichTextHTML(
+        replaceHTML(rawField.title as string, values, fields, query, variables)
+      ),
+      description: sanitizeRichTextHTML(
+        replaceHTML(rawField.description as string, values, fields, query, variables)
+      )
     }),
     [fields, query, rawField, values, variables]
   )

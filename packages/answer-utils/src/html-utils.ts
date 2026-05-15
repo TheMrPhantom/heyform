@@ -33,9 +33,22 @@ const ALLOWED_ATTRIBUTES = [
   'data-mention',
   'data-variable',
   'data-hiddenfield',
-  'contenteditable',
-  'style'
+  'contenteditable'
 ]
+
+const UNSAFE_URL_PROTOCOL_REGEX = /^\s*(?:javascript|vbscript|data):/i
+
+function escapeText(value: unknown): string {
+  return String(value).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function escapeAttribute(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
 
 function getAttributes(row: IAttribute[], allowedAttributes: string[] = []): Record<string, any> {
   const result: Record<string, any> = {}
@@ -43,9 +56,14 @@ function getAttributes(row: IAttribute[], allowedAttributes: string[] = []): Rec
   if (helper.isValidArray(row)) {
     row.forEach(a => {
       const name = a.name.value.toLowerCase()
+      const value = a.value?.value
 
       if (allowedAttributes.includes(name)) {
-        result[name] = a.value?.value
+        if (name === 'href' && helper.isValid(value) && UNSAFE_URL_PROTOCOL_REGEX.test(value)) {
+          return
+        }
+
+        result[name] = value
       }
     })
   }
@@ -142,7 +160,7 @@ function serialize(schemas?: any[], option?: HTMLWalkOptions): string {
   return schemas!
     .map(schema => {
       if (helper.isString(schema)) {
-        return schema
+        return escapeText(schema)
       }
 
       if (!helper.isValidArray(schema)) {
@@ -189,7 +207,8 @@ function serialize(schemas?: any[], option?: HTMLWalkOptions): string {
 
         property = Object.keys(attributes!)
           .filter(key => customOption.allowedAttributes!.includes(key))
-          .map(key => ` ${key}="${attributes![key]}"`)
+          .filter(key => key !== 'href' || !UNSAFE_URL_PROTOCOL_REGEX.test(attributes![key]))
+          .map(key => ` ${key}="${escapeAttribute(attributes![key])}"`)
           .join('')
       }
 

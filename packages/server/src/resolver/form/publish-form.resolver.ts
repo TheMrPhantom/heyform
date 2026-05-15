@@ -6,6 +6,7 @@ import { helper, timestamp } from '@heyform-inc/utils'
 import { TeamModel, UserModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { FormService, UserService } from '@service'
+import { sanitizeFormDrafts } from '@utils'
 
 @Resolver()
 @Auth()
@@ -32,9 +33,11 @@ export class PublishFormResolver {
       })
     }
 
+    const drafts = sanitizeFormDrafts(input.drafts)
+
     const updates: Record<string, any> = {
-      fields: input.drafts,
-      _drafts: JSON.stringify(input.drafts),
+      fields: drafts,
+      _drafts: JSON.stringify(drafts),
       fieldsUpdatedAt: timestamp(),
       version: input.version,
       'settings.active': true
