@@ -47,6 +47,39 @@ function testSanitizesDraftRichText() {
   assert.deepStrictEqual(drafts[0].properties.fields[0].description, [])
 }
 
+function testSanitizesNestedGroupDrafts() {
+  const drafts = sanitizeFormDrafts([
+    {
+      id: 'group_1',
+      kind: 'group',
+      title: 'Parent',
+      properties: {
+        fields: [
+          {
+            id: 'group_2',
+            kind: 'group',
+            title: '<p>Child group</p>',
+            properties: {
+              fields: [
+                {
+                  id: 'child_1',
+                  kind: 'short_text',
+                  title: '<img src=x onerror=alert(1)>Nested child'
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ])
+
+  assert.deepStrictEqual(drafts[0].properties.fields[0].title, [['p', ['Child group']]])
+  assert.deepStrictEqual(drafts[0].properties.fields[0].properties.fields[0].title, [
+    'Nested child'
+  ])
+}
+
 function testDropsUnsafeHrefProtocols() {
   const drafts = sanitizeFormDrafts([
     {
@@ -69,6 +102,7 @@ function testDropsUnsafeHrefProtocols() {
 
 function run() {
   testSanitizesDraftRichText()
+  testSanitizesNestedGroupDrafts()
   testDropsUnsafeHrefProtocols()
 }
 

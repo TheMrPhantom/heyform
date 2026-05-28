@@ -29,10 +29,10 @@ export class PermissionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context)
-    let { req } = ctx.getContext()
+    let req = ctx.getContext()?.req
     let args = ctx.getArgs()
 
-    if (helper.isEmpty(req)) {
+    if (context.getType() === 'http' || helper.isEmpty(req) || helper.isEmpty(args?.input)) {
       req = context.switchToHttp().getRequest()
       args = {
         input: {

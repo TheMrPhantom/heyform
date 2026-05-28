@@ -270,6 +270,9 @@ class FormChildFieldInput extends SharedFormFieldInput {
   @Field(type => String)
   kind: FieldKindEnum
 
+  @Field(type => PropertyInput, { nullable: true })
+  properties?: Property
+
   @Field(type => LayoutInput, { nullable: true })
   layout?: Layout
 }
