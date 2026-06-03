@@ -1,4 +1,5 @@
 export * from './bull'
+export * from './cors'
 export * from './graphql'
 export * from './mongo'
 export * from './redis'

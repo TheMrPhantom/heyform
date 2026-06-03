@@ -22,6 +22,10 @@ export const APP_LISTEN_PORT: number = +process.env.APP_LISTEN_PORT || 9157
 export const APP_LISTEN_HOSTNAME: string = process.env.APP_LISTEN_HOSTNAME || '0.0.0.0'
 export const APP_HOMEPAGE_URL: string =
   process.env.APP_HOMEPAGE_URL || `http://${APP_LISTEN_HOSTNAME}:${APP_LISTEN_PORT}`
+export const CORS_ALLOWED_ORIGINS: string[] = (process.env.CORS_ALLOWED_ORIGINS || APP_HOMEPAGE_URL)
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
 export const APP_DISABLE_REGISTRATION: boolean = helper.isTrue(process.env.APP_DISABLE_REGISTRATION)
 export const ENABLE_GOOGLE_FONTS: boolean =
   process.env.ENABLE_GOOGLE_FONTS === undefined

@@ -8,6 +8,7 @@ import * as helmet from 'helmet'
 import { extname } from 'path'
 import * as serveStatic from 'serve-static'
 
+import { corsOrigin } from '@config'
 import {
   APP_LISTEN_HOSTNAME,
   APP_LISTEN_PORT,
@@ -40,7 +41,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter())
 
   app.enableCors({
-    origin: true,
+    origin: corsOrigin,
     credentials: true
   })
 
