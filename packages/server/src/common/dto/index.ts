@@ -11,6 +11,7 @@ import {
 
 import {
   isAllowedHostname,
+  isAllowedUrlOrigin,
   isLocalDevelopmentHost,
   isLocalHostname,
   isPrivateAddress
@@ -29,33 +30,64 @@ function getHostname(url?: string): string | undefined {
   }
 }
 
+function getOrigin(url?: string): string | undefined {
+  if (!url) {
+    return
+  }
+
+  try {
+    return new URL(url).origin.toLowerCase()
+  } catch {
+    return
+  }
+}
+
+export const FIRST_PARTY_IMAGE_HOSTS = [
+  getHostname(APP_HOMEPAGE_URL),
+  getHostname(S3_PUBLIC_URL)
+].filter(Boolean) as string[]
+
+export const FIRST_PARTY_IMAGE_ORIGINS = [
+  getOrigin(APP_HOMEPAGE_URL),
+  getOrigin(S3_PUBLIC_URL)
+].filter(Boolean) as string[]
+
 export const ALLOWED_IMAGE_HOSTS = [
   'secure.gravatar.com',
   'googleusercontent.com',
   'images.unsplash.com',
   'unsplash.com',
-  getHostname(APP_HOMEPAGE_URL),
-  getHostname(S3_PUBLIC_URL)
-].filter(Boolean) as string[]
+  ...FIRST_PARTY_IMAGE_HOSTS
+]
+
+export function isAllowedImageUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase()
+    const isAllowedHost = ALLOWED_IMAGE_HOSTS.some(allowedHost =>
+      isAllowedHostname(hostname, [allowedHost])
+    )
+
+    if (isLocalDevelopmentHost(hostname)) {
+      return true
+    }
+
+    if (
+      (isLocalHostname(hostname) || isPrivateAddress(hostname)) &&
+      !isAllowedUrlOrigin(url, FIRST_PARTY_IMAGE_ORIGINS)
+    ) {
+      return false
+    }
+
+    return isAllowedHost
+  } catch {
+    return false
+  }
+}
 
 @ValidatorConstraint({ name: 'isAllowedImageUrl', async: false })
 class IsAllowedImageUrlConstraint implements ValidatorConstraintInterface {
   validate(url: string): boolean {
-    try {
-      const hostname = new URL(url).hostname.toLowerCase()
-
-      if (isLocalDevelopmentHost(hostname)) {
-        return true
-      }
-
-      if (isLocalHostname(hostname) || isPrivateAddress(hostname)) {
-        return false
-      }
-
-      return ALLOWED_IMAGE_HOSTS.some(allowedHost => isAllowedHostname(hostname, [allowedHost]))
-    } catch {
-      return false
-    }
+    return isAllowedImageUrl(url)
   }
 
   defaultMessage(): string {

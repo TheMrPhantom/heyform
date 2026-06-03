@@ -3,6 +3,7 @@ import * as assert from 'assert'
 import {
   assertSafeOutboundUrl,
   isAllowedHostname,
+  isAllowedUrlOrigin,
   isHttpUrl,
   isHttpsUrl,
   isIPv4,
@@ -91,6 +92,20 @@ function testAllowedHostnameDetection() {
     isAllowedHostname('evilgoogleusercontent.com', ['googleusercontent.com']),
     false
   )
+  assert.strictEqual(
+    isAllowedUrlOrigin('http://192.168.1.10:9157/static/webhook.png', ['http://192.168.1.10:9157']),
+    true
+  )
+  assert.strictEqual(
+    isAllowedUrlOrigin('http://192.168.1.10:9158/static/webhook.png', ['http://192.168.1.10:9157']),
+    false
+  )
+  assert.strictEqual(
+    isAllowedUrlOrigin('https://192.168.1.10:9157/static/webhook.png', [
+      'http://192.168.1.10:9157'
+    ]),
+    false
+  )
 }
 
 async function testSafeOutboundUrlPolicy() {
@@ -116,6 +131,42 @@ async function testSafeOutboundUrlPolicy() {
       () => assertSafeOutboundUrl('http://127.0.0.1:3000/avatar.png', { skipDnsLookup: true }),
       (error: any) => error?.message === 'Private network URLs are not allowed'
     )
+
+    const firstPartyPrivateUrl = await assertSafeOutboundUrl(
+      'http://192.168.1.10:9157/static/webhook.png',
+      {
+        allowedHosts: ['192.168.1.10'],
+        allowedPrivateOrigins: ['http://192.168.1.10:9157'],
+        skipDnsLookup: true
+      }
+    )
+
+    assert.strictEqual(firstPartyPrivateUrl.hostname, '192.168.1.10')
+
+    await assert.rejects(
+      () =>
+        assertSafeOutboundUrl('http://192.168.1.10:9157/static/webhook.png', {
+          allowedHosts: ['192.168.1.10'],
+          skipDnsLookup: true
+        }),
+      (error: any) => error?.message === 'Private network URLs are not allowed'
+    )
+    await assert.rejects(
+      () =>
+        assertSafeOutboundUrl('http://192.168.1.10:9158/static/webhook.png', {
+          allowedHosts: ['192.168.1.10'],
+          allowedPrivateOrigins: ['http://192.168.1.10:9157'],
+          skipDnsLookup: true
+        }),
+      (error: any) => error?.message === 'Private network URLs are not allowed'
+    )
+
+    const publicImageUrl = await assertSafeOutboundUrl('https://images.unsplash.com/photo.jpg', {
+      allowedHosts: ['images.unsplash.com'],
+      skipDnsLookup: true
+    })
+
+    assert.strictEqual(publicImageUrl.hostname, 'images.unsplash.com')
   })
 }
 

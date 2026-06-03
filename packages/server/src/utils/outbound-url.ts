@@ -5,6 +5,7 @@ import isURL from 'validator/lib/isURL'
 
 interface SafeOutboundUrlOptions {
   allowedHosts?: string[]
+  allowedPrivateOrigins?: string[]
   skipDnsLookup?: boolean
 }
 
@@ -14,6 +15,13 @@ function stripIpv6Brackets(hostname: string): string {
 
 function normalizeHostname(hostname: string): string {
   return stripIpv6Brackets(hostname).replace(/\.$/, '').toLowerCase()
+}
+
+export function normalizeUrlOrigin(url: URL): string {
+  const hostname = normalizeHostname(url.hostname)
+  const host = isIPv6(hostname) ? `[${hostname}]` : hostname
+
+  return `${url.protocol.toLowerCase()}//${host}${url.port ? `:${url.port}` : ''}`
 }
 
 function isDevelopment(): boolean {
@@ -135,6 +143,28 @@ export function isAllowedHostname(hostname: string, allowedHosts: string[]): boo
     .some(allowedHost => normalized === allowedHost || normalized.endsWith(`.${allowedHost}`))
 }
 
+export function isAllowedUrlOrigin(rawUrl: string | URL, allowedOrigins: string[]): boolean {
+  let url: URL
+
+  try {
+    url = rawUrl instanceof URL ? rawUrl : new URL(rawUrl)
+  } catch {
+    return false
+  }
+
+  const normalized = normalizeUrlOrigin(url)
+
+  return allowedOrigins
+    .map(allowedOrigin => {
+      try {
+        return normalizeUrlOrigin(new URL(allowedOrigin))
+      } catch {
+        return
+      }
+    })
+    .some(allowedOrigin => normalized === allowedOrigin)
+}
+
 export async function assertSafeOutboundUrl(
   rawUrl: string,
   options: SafeOutboundUrlOptions = {}
@@ -153,8 +183,9 @@ export async function assertSafeOutboundUrl(
 
   const hostname = normalizeHostname(url.hostname)
   const isDevelopmentHost = isLocalDevelopmentHost(hostname)
+  const isAllowedPrivateOrigin = isAllowedUrlOrigin(url, options.allowedPrivateOrigins || [])
 
-  if (isLocalHostname(hostname) && !isDevelopmentHost) {
+  if (isLocalHostname(hostname) && !isDevelopmentHost && !isAllowedPrivateOrigin) {
     throw new BadRequestException('Localhost URLs are not allowed')
   }
 
@@ -167,7 +198,7 @@ export async function assertSafeOutboundUrl(
   }
 
   if (isIPv4(hostname) || isIPv6(hostname)) {
-    if (!isDevelopmentHost && isPrivateAddress(hostname)) {
+    if (!isDevelopmentHost && !isAllowedPrivateOrigin && isPrivateAddress(hostname)) {
       throw new BadRequestException('Private network URLs are not allowed')
     }
 
@@ -183,7 +214,9 @@ export async function assertSafeOutboundUrl(
     if (
       addresses.some(
         row =>
-          isPrivateAddress(row.address) && !(isDevelopmentHost && isLoopbackAddress(row.address))
+          isPrivateAddress(row.address) &&
+          !(isDevelopmentHost && isLoopbackAddress(row.address)) &&
+          !isAllowedPrivateOrigin
       )
     ) {
       throw new BadRequestException('Private network URLs are not allowed')

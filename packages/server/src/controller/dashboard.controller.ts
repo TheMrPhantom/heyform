@@ -1,4 +1,4 @@
-import { Controller, Get, Header, Res } from '@nestjs/common'
+import { Controller, Get, Header, Redirect, Res } from '@nestjs/common'
 import { Response } from 'express'
 
 import {
@@ -31,6 +31,10 @@ export class DashboardController {
   config() {
     return this.runtimeConfig()
   }
+
+  @Get('/favicon.ico')
+  @Redirect('/static/favicon.ico', 302)
+  favicon() {}
 
   @Get('/sign-up')
   signUp(@Res() res: Response) {
