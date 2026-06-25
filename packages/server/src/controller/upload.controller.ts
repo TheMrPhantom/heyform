@@ -9,12 +9,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import { extname } from 'path'
 
-import {
-  COOKIE_DEVICE_ID_NAME,
-  COOKIE_SESSION_NAME,
-  getMulterStorage,
-  removeUploadedFile
-} from '@config'
+import { COOKIE_DEVICE_ID_NAME, getMulterStorage, removeUploadedFile } from '@config'
 import { APP_HOMEPAGE_URL, S3_PUBLIC_URL, UPLOAD_FILE_SIZE, UPLOAD_FILE_TYPES } from '@environments'
 import { helper } from '@heyform-inc/utils'
 import { AuthService, EndpointService, FormService } from '@service'
@@ -22,14 +17,6 @@ import { isAllowedUploadField } from '@utils'
 
 const BLOCKED_UPLOAD_EXTENSIONS = new Set(['.svg', '.svgz'])
 const BLOCKED_UPLOAD_MIME_TYPES = new Set(['image/svg+xml', 'application/svg+xml'])
-
-function hasUploadContext(req: any): boolean {
-  return (
-    helper.isValid(getUploadContextValue(req, 'formId')) &&
-    helper.isValid(getUploadContextValue(req, 'openToken')) &&
-    helper.isValid(getUploadContextValue(req, 'fieldId'))
-  )
-}
 
 function getUploadContextValue(
   req: any,
@@ -54,22 +41,6 @@ export class UploadController {
       limits: {
         fileSize: UPLOAD_FILE_SIZE
       },
-      fileFilter: (req: any, file: any, cb: any) => {
-        const extension = extname(file.originalname).toLowerCase()
-        const mimeType = String(file.mimetype || '').toLowerCase()
-        const hasSession = helper.isValid(req.cookies?.[COOKIE_SESSION_NAME])
-
-        if (
-          (hasSession || hasUploadContext(req)) &&
-          !BLOCKED_UPLOAD_EXTENSIONS.has(extension) &&
-          !BLOCKED_UPLOAD_MIME_TYPES.has(mimeType) &&
-          UPLOAD_FILE_TYPES.includes(mimeType)
-        ) {
-          cb(null, true)
-        } else {
-          cb(new BadRequestException(`Unsupported file type ${extname(file.originalname)}`), false)
-        }
-      },
       storage: getMulterStorage()
     })
   )
@@ -78,14 +49,15 @@ export class UploadController {
     @UploadedFile() file: any
   ): Promise<{ filename: string; url: string; size: number }> {
     try {
+      if (!file) {
+        throw new BadRequestException('No upload file provided')
+      }
+
+      this.assertFileTypeAllowed(file)
       await this.assertUploadAllowed(req)
     } catch (error) {
       await removeUploadedFile(file)
       throw error
-    }
-
-    if (!file) {
-      throw new BadRequestException('No upload file provided')
     }
 
     let url: string =
@@ -103,6 +75,19 @@ export class UploadController {
       filename: file.originalname,
       size: file.size,
       url
+    }
+  }
+
+  private assertFileTypeAllowed(file: any): void {
+    const extension = extname(file.originalname).toLowerCase()
+    const mimeType = String(file.mimetype || '').toLowerCase()
+
+    if (
+      BLOCKED_UPLOAD_EXTENSIONS.has(extension) ||
+      BLOCKED_UPLOAD_MIME_TYPES.has(mimeType) ||
+      !UPLOAD_FILE_TYPES.includes(mimeType)
+    ) {
+      throw new BadRequestException(`Unsupported file type ${extname(file.originalname)}`)
     }
   }
 
