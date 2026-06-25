@@ -12,7 +12,7 @@ export function build(baseUrl: string) {
   const { suite, test } = defineSuite('static & upload')
   const client = new E2EClient({ baseUrl })
 
-  test('POST /api/upload accepts a PNG image', async () => {
+  test('POST /api/upload rejects anonymous uploads without form context', async () => {
     const res = await client.uploadFile('/api/upload', {
       filename: `e2e-${Date.now()}.png`,
       contentType: 'image/png',
@@ -20,12 +20,10 @@ export function build(baseUrl: string) {
     })
     assert.strictEqual(
       res.status,
-      201,
-      `expected 201, got ${res.status}: ${res.text.slice(0, 200)}`
+      400,
+      `expected 400, got ${res.status}: ${res.text.slice(0, 200)}`
     )
-    assert.ok(res.body?.url, 'response should contain a URL')
-    assert.ok(res.body?.filename, 'response should echo a filename')
-    assert.strictEqual(typeof res.body?.size, 'number')
+    assert.ok(!res.body?.url, 'response should not contain a URL')
   })
 
   return suite

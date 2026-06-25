@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common'
 import { promises as dns } from 'dns'
+import type { LookupAddress } from 'dns'
 import { BlockList } from 'node:net'
 import isIP from 'validator/lib/isIP'
 import isURL from 'validator/lib/isURL'
@@ -7,7 +8,54 @@ import isURL from 'validator/lib/isURL'
 interface SafeOutboundUrlOptions {
   allowedHosts?: string[]
   allowedPrivateOrigins?: string[]
+  dnsLookup?: typeof dns.lookup
   skipDnsLookup?: boolean
+}
+
+type LookupCallback = (err: NodeJS.ErrnoException | null, address?: any, family?: number) => void
+type IPFamily = 4 | 6
+
+interface EntryObject {
+  readonly address: string
+  readonly family: IPFamily
+}
+
+interface LookupOptions {
+  all?: boolean
+  family?: IPFamily
+  hints?: number
+}
+
+interface SafeLookupFunction {
+  (
+    hostname: string,
+    family: IPFamily,
+    callback: (error: NodeJS.ErrnoException, address: string, family: IPFamily) => void
+  ): void
+  (
+    hostname: string,
+    callback: (error: NodeJS.ErrnoException, address: string, family: IPFamily) => void
+  ): void
+  (
+    hostname: string,
+    options: LookupOptions & { all: true },
+    callback: (error: NodeJS.ErrnoException, result: ReadonlyArray<EntryObject>) => void
+  ): void
+  (
+    hostname: string,
+    options: LookupOptions,
+    callback: (error: NodeJS.ErrnoException, address: string, family: IPFamily) => void
+  ): void
+}
+
+interface SafeOutboundUrlValidation {
+  addresses?: EntryObject[]
+  url: URL
+}
+
+export interface SafeOutboundRequest {
+  lookup?: SafeLookupFunction
+  url: URL
 }
 
 function stripIpv6Brackets(hostname: string): string {
@@ -251,10 +299,69 @@ export function isAllowedUrlOrigin(rawUrl: string | URL, allowedOrigins: string[
     .some(allowedOrigin => normalized === allowedOrigin)
 }
 
-export async function assertSafeOutboundUrl(
+function createLookupError(hostname: string): NodeJS.ErrnoException {
+  const error = new Error(`No validated address for ${hostname}`) as NodeJS.ErrnoException
+  error.code = 'ENOTFOUND'
+  return error
+}
+
+function isIPFamily(value: unknown): value is IPFamily {
+  return value === 4 || value === 6
+}
+
+function toPinnedLookupEntries(addresses: LookupAddress[]): EntryObject[] {
+  return addresses
+    .filter(row => isIPFamily(row.family))
+    .map(row => ({
+      address: row.address,
+      family: row.family as IPFamily
+    }))
+}
+
+function createPinnedLookup(hostname: string, addresses: EntryObject[]): SafeLookupFunction {
+  const normalizedHostname = normalizeHostname(hostname)
+
+  const lookup = (requestedHostname: string, options: any, callback?: LookupCallback) => {
+    if (typeof options === 'function') {
+      callback = options
+      options = {}
+    } else if (typeof options === 'number') {
+      options = {
+        family: options
+      }
+    }
+
+    const cb = callback!
+
+    if (normalizeHostname(requestedHostname) !== normalizedHostname) {
+      cb(createLookupError(requestedHostname))
+      return
+    }
+
+    const family = isIPFamily(options?.family) ? options.family : undefined
+    const candidates = family ? addresses.filter(row => row.family === family) : addresses
+
+    if (candidates.length < 1) {
+      cb(createLookupError(requestedHostname))
+      return
+    }
+
+    if (options?.all) {
+      cb(null, candidates)
+      return
+    }
+
+    const [first] = candidates
+    cb(null, first.address, first.family)
+  }
+
+  return lookup as SafeLookupFunction
+}
+
+async function validateSafeOutboundUrl(
   rawUrl: string,
   options: SafeOutboundUrlOptions = {}
-): Promise<URL> {
+): Promise<SafeOutboundUrlValidation> {
   let url: URL
 
   if (!isHttpOrHttpsUrl(rawUrl)) {
@@ -288,14 +395,15 @@ export async function assertSafeOutboundUrl(
       throw new BadRequestException('Private network URLs are not allowed')
     }
 
-    return url
+    return { url }
   }
 
   if (!options.skipDnsLookup) {
-    const addresses = await dns.lookup(hostname, {
+    const dnsLookup = options.dnsLookup || dns.lookup
+    const addresses = (await dnsLookup(hostname, {
       all: true,
       verbatim: true
-    })
+    } as any)) as unknown as LookupAddress[]
 
     if (
       addresses.some(
@@ -307,7 +415,34 @@ export async function assertSafeOutboundUrl(
     ) {
       throw new BadRequestException('Private network URLs are not allowed')
     }
+
+    const pinnedAddresses = toPinnedLookupEntries(addresses)
+
+    if (pinnedAddresses.length < 1) {
+      throw new BadRequestException('Unable to resolve URL host')
+    }
+
+    return { addresses: pinnedAddresses, url }
   }
 
-  return url
+  return { url }
+}
+
+export async function assertSafeOutboundUrl(
+  rawUrl: string,
+  options: SafeOutboundUrlOptions = {}
+): Promise<URL> {
+  return (await validateSafeOutboundUrl(rawUrl, options)).url
+}
+
+export async function assertSafeOutboundRequest(
+  rawUrl: string,
+  options: SafeOutboundUrlOptions = {}
+): Promise<SafeOutboundRequest> {
+  const result = await validateSafeOutboundUrl(rawUrl, options)
+
+  return {
+    url: result.url,
+    lookup: result.addresses ? createPinnedLookup(result.url.hostname, result.addresses) : undefined
+  }
 }

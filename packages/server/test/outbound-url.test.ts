@@ -1,6 +1,25 @@
 import * as assert from 'assert'
 
-import { assertSafeOutboundUrl, isPrivateAddress } from '../src/utils/outbound-url'
+import {
+  assertSafeOutboundRequest,
+  assertSafeOutboundUrl,
+  isPrivateAddress
+} from '../src/utils/outbound-url'
+
+async function withNodeEnv<T>(value: string, fn: () => Promise<T>): Promise<T> {
+  const previous = process.env.NODE_ENV
+  process.env.NODE_ENV = value
+
+  try {
+    return await fn()
+  } finally {
+    if (previous === undefined) {
+      delete process.env.NODE_ENV
+    } else {
+      process.env.NODE_ENV = previous
+    }
+  }
+}
 
 // Alternate IPv6 encodings of private/reserved IPv4 addresses must be blocked.
 // These reach isPrivateAddress() when a hostname resolves (via DNS) to such an
@@ -67,11 +86,63 @@ async function testAssertSafeOutboundUrlRejectsEncodedPrivate() {
   assert.ok(url instanceof URL)
 }
 
+async function lookupAll(lookup: any, hostname: string, family?: number): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    lookup(hostname, { all: true, family }, (error: Error | null, addresses: any[]) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(addresses)
+      }
+    })
+  })
+}
+
+async function lookupOne(lookup: any, hostname: string, family?: number): Promise<any> {
+  return new Promise((resolve, reject) => {
+    lookup(hostname, { family }, (error: Error | null, address: string, resolvedFamily: number) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve({ address, family: resolvedFamily })
+      }
+    })
+  })
+}
+
+async function testSafeOutboundRequestPinsValidatedDnsAddresses() {
+  await withNodeEnv('production', async () => {
+    const result = await assertSafeOutboundRequest('http://rebind.example.test/avatar.png', {
+      dnsLookup: (async () => [
+        {
+          address: '93.184.216.34',
+          family: 4
+        }
+      ]) as any
+    })
+
+    assert.strictEqual(result.url.hostname, 'rebind.example.test')
+    assert.ok(result.lookup)
+    assert.deepStrictEqual(await lookupAll(result.lookup, 'rebind.example.test'), [
+      {
+        address: '93.184.216.34',
+        family: 4
+      }
+    ])
+    assert.deepStrictEqual(await lookupOne(result.lookup, 'rebind.example.test'), {
+      address: '93.184.216.34',
+      family: 4
+    })
+    await assert.rejects(() => lookupAll(result.lookup, 'other.example.test'))
+  })
+}
+
 async function run() {
   testBlocksAlternateIPv6Encodings()
   testAllowsPublicMappedAddresses()
   testPreservesKnownRanges()
   await testAssertSafeOutboundUrlRejectsEncodedPrivate()
+  await testSafeOutboundRequestPinsValidatedDnsAddresses()
 }
 
 if (require.main === module) {
