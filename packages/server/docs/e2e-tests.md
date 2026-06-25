@@ -30,7 +30,7 @@ packages/server/test/e2e/
 ├── permission-matrix.e2e.test.ts          # role-based permission matrix (programmatic)
 ├── rate-limit.e2e.test.ts                 # login lockout, code-resend cooldown (LAST)
 ├── stateful-edges.e2e.test.ts             # version, trash/restore, cross-team, invite/ownership
-├── static-upload.e2e.test.ts              # PNG upload via /api/upload
+├── static-upload.e2e.test.ts              # anonymous /api/upload rejection without form context
 ├── team-flow.e2e.test.ts                  # stateful admin/COLLABORATOR/MEMBER lifecycle
 └── scripts/
     └── run-with-docker.js                 # docker compose wrapper
@@ -97,7 +97,7 @@ APP_HOMEPAGE_URL=http://localhost:9157
 | 1     | `health`             | 2             | `/health`, `/health/ready` reports mongo + redis up.                                                 |
 | 2     | `auth`               | 9             | DeviceId guard, sign-up (cookies, `userDetail`), duplicate-email, weak password, login Query, wrong password, missing account, unauthenticated `userDetail`, `/logout`. |
 | 3     | `catalog`            | 3             | `apps` (public), `templates` (auth-only), unauthenticated `templates` rejected.                      |
-| 4     | `static & upload`    | 1             | PNG upload happy path via `/api/upload`.                                                             |
+| 4     | `static & upload`    | 1             | Anonymous `/api/upload` rejects missing form upload context.                                          |
 | 5     | `input validation`   | 16            | Empty/oversize names, malformed emails, missing required fields, invalid enum values, weak password. |
 | 6     | `auth flows`         | 7             | `updateUserPassword` rotation + wrong-currentPassword + weak-newPassword, `sendResetPasswordEmail`+`resetPassword` end-to-end (code read from Redis), session retained after `removeTeamMember` but team scope lost. |
 | 7     | `stateful edges`     | 13            | Stale-version rejection on `updateFormSchemas`/`publishForm`, idempotent double-trash, `restoreForm` on NORMAL form is a no-op, **`deleteForm` returns true even on NORMAL form (server bug)**, cross-team `formDetail`/`forms` leakage forbidden, `joinTeam` failures (wrong code / already joined / rotated code), `leaveTeam` blocks the owner, `removeTeamMember` refuses the owner, `transferTeam` to non-member rejected, `openForm` on unpublished form, `completeSubmission` with bad `openToken`. |
