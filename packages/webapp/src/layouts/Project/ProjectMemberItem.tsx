@@ -73,7 +73,7 @@ export const ProjectJoinedMemberItem: FC<ProjectMemberItemProps> = ({ member }) 
     {
       manual: true,
       refreshDeps: [workspaceId, projectId],
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast({
           title: t('project.members.leaveFailed'),
           message: err.message
@@ -86,11 +86,15 @@ export const ProjectJoinedMemberItem: FC<ProjectMemberItemProps> = ({ member }) 
     async () => {
       await ProjectService.removeMember(projectId, member.id)
       removeMemberFromProject(workspaceId, projectId, member.id)
+
+      toast({
+        title: t('project.members.removeSuccess')
+      })
     },
     {
       manual: true,
       refreshDeps: [workspaceId, projectId, member.id],
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast({
           title: t('project.members.removeFailed'),
           message: err.message
@@ -100,25 +104,29 @@ export const ProjectJoinedMemberItem: FC<ProjectMemberItemProps> = ({ member }) 
   )
 
   const children = useMemo(() => {
-    if (!member.isOwner && !member.isYou) {
-      if (member.isYou) {
-        return (
-          <Button size="md" loading={leaveLoading} onClick={handleLeave}>
-            {t('project.members.leave')}
-          </Button>
-        )
-      } else if (workspace?.isOwner) {
-        return (
-          <Button
-            className="bg-error text-primary-light hover:bg-error dark:text-primary"
-            size="md"
-            loading={removeLoading}
-            onClick={handleRemove}
-          >
-            {t('project.members.remove')}
-          </Button>
-        )
-      }
+    if (member.isOwner) {
+      return null
+    }
+
+    if (member.isYou) {
+      return (
+        <Button size="md" loading={leaveLoading} onClick={handleLeave}>
+          {t('project.members.leave')}
+        </Button>
+      )
+    }
+
+    if (workspace?.isOwner) {
+      return (
+        <Button
+          className="bg-error text-primary-light hover:bg-error dark:text-primary"
+          size="md"
+          loading={removeLoading}
+          onClick={handleRemove}
+        >
+          {t('project.members.remove')}
+        </Button>
+      )
     }
 
     return null
@@ -148,11 +156,15 @@ export const ProjectRemainingMemberItem: FC<ProjectMemberItemProps> = ({ member 
     async () => {
       await ProjectService.addMember(projectId, member.id)
       addMemberToProject(workspaceId, projectId, member.id)
+
+      toast({
+        title: t('project.members.addSuccess')
+      })
     },
     {
       manual: true,
       refreshDeps: [workspaceId, projectId, member.id],
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast({
           title: t('project.members.addFailed'),
           message: err.message

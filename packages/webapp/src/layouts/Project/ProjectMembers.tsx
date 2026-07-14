@@ -3,17 +3,17 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { WorkspaceService } from '@/services'
-import { useParam } from '@/utils'
+import { useParam, useRouter } from '@/utils'
 
 import { Async, Avatar, Button, Repeat, Tooltip } from '@/components'
-import { useAppStore, useWorkspaceStore } from '@/store'
+import { useWorkspaceStore } from '@/store'
 
 export default function ProjectMembers() {
   const { t } = useTranslation()
 
-  const { workspaceId } = useParam()
+  const router = useRouter()
+  const { workspaceId, projectId } = useParam()
   const { project, members, setMembers } = useWorkspaceStore()
-  const { openModal } = useAppStore()
 
   const exists = useMemo(
     () => members.filter(m => project?.members.includes(m.id)),
@@ -57,7 +57,11 @@ export default function ProjectMembers() {
             size="md"
             iconOnly
             aria-label={t('project.members.headline')}
-            onClick={() => openModal('ProjectMembersModal')}
+            onClick={() =>
+              router.push(`/workspace/${workspaceId}/project/${projectId}/members`, {
+                extend: false
+              })
+            }
           >
             <IconDots className="h-5 w-5" />
           </Button.Link>
