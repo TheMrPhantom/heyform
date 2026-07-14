@@ -62,10 +62,6 @@ Interested in self-hosting HeyForm on your server? Take a look at the [self-host
 
 ### One Click Deployment
 
-<a href="https://railway.app/template/f5vBKm">
-	<img src="https://railway.app/button.svg" alt="Deploy on Railway" height="36" />
-</a>
-
 <a href="https://zeabur.com/templates/9YAUUO" style="margin-left:8px">
 	<img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" />
 </a>
