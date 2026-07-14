@@ -275,6 +275,21 @@ export function build(baseUrl: string) {
     })
   })
 
+  test('admin exports submissions as CSV over a bodyless GET request', async () => {
+    const { admin, formId } = need(state, ['admin', 'formId'])
+    const result = await admin.client.restGet(
+      `/api/export/submissions?formId=${encodeURIComponent(formId)}`
+    )
+
+    assert.strictEqual(result.status, 200, 'submission export should succeed')
+    assert.match(
+      result.headers.get('content-disposition') ?? '',
+      /attachment; filename=".*\.csv"/,
+      'response should download a CSV file'
+    )
+    assert.match(result.text, /What is your name\?/, 'CSV should contain the form field')
+  })
+
   test('admin sees the submission in inbox, archives it, then deletes it', async () => {
     const { admin, formId } = need(state, ['admin', 'formId'])
 
