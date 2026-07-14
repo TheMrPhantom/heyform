@@ -72,6 +72,7 @@ export const MONGO_SSL_CA_PATH: Buffer[] | undefined = process.env.MONGO_SSL_CA_
 // Redis
 export const REDIS_HOST: string = process.env.REDIS_HOST || '127.0.0.1'
 export const REDIS_PORT: number = +process.env.REDIS_PORT || 6379
+export const REDIS_USERNAME: string = process.env.REDIS_USERNAME
 export const REDIS_PASSWORD: string = process.env.REDIS_PASSWORD
 export const REDIS_DB: number = +process.env.REDIS_DB || 0
 
