@@ -1,6 +1,8 @@
 import { createElement } from 'react'
 import { Navigate } from 'react-router-dom'
 
+import { hasInvitationCookie } from '@/utils'
+
 import { isRegistrationDisabled } from '@/consts'
 import { AuthLayout, BaseLayout, WorkspaceGuard, WorkspaceLayout } from '@/layouts'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
@@ -25,7 +27,7 @@ import WorkspaceMembers from '@/pages/workspace/Members'
 import WorkspaceSettings from '@/pages/workspace/Settings'
 
 const SignUpRoute = () =>
-  isRegistrationDisabled()
+  isRegistrationDisabled() && !hasInvitationCookie()
     ? createElement(Navigate, { to: '/login', replace: true })
     : createElement(SignUp)
 

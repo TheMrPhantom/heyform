@@ -2,7 +2,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { AuthService } from '@/services'
-import { useRouter } from '@/utils'
+import { hasInvitationCookie, useRouter } from '@/utils'
 
 import { Form, Input } from '@/components'
 import { isRegistrationDisabled } from '@/consts'
@@ -12,6 +12,7 @@ import SocialLogin from './SocialLogin'
 const Login = () => {
   const { t } = useTranslation()
   const router = useRouter()
+  const canSignUp = !isRegistrationDisabled() || hasInvitationCookie()
 
   async function fetch(values: any) {
     await AuthService.login(values)
@@ -22,7 +23,7 @@ const Login = () => {
     <div className="mx-auto grid w-[21.875rem] gap-6 py-12 lg:py-0">
       <div className="grid gap-2 text-center">
         <h1 className="text-3xl font-bold">{t('login.headline')}</h1>
-        {!isRegistrationDisabled() && (
+        {canSignUp && (
           <p className="text-secondary text-sm">
             <Trans
               t={t}

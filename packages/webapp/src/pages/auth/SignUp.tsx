@@ -3,10 +3,11 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { AuthService } from '@/services'
-import { useRouter } from '@/utils'
+import { clearCookie, clearInvitationCookie, getInvitationCookie, useRouter } from '@/utils'
 import { helper } from '@heyform-inc/utils'
 
 import { Form, Input, PasswordStrength } from '@/components'
+import { REDIRECT_COOKIE_NAME } from '@/consts'
 import { useUserStore } from '@/store'
 
 import SocialLogin from './SocialLogin'
@@ -25,8 +26,13 @@ const SignUp = () => {
   }
 
   async function fetch(values: any) {
-    await AuthService.signUp(values)
+    await AuthService.signUp({
+      ...values,
+      ...getInvitationCookie()
+    })
 
+    clearInvitationCookie()
+    clearCookie(REDIRECT_COOKIE_NAME)
     setTemporaryEmail(values.email)
     setVerifyEmailSentAt(Date.now())
     router.replace('/verify-email')

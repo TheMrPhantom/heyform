@@ -6,7 +6,11 @@ import { getDeviceId, useRouter } from '@/utils'
 
 import IconGoogle from '@/assets/google.svg?react'
 import { Button, Divider } from '@/components'
-import { DISABLE_LOGIN_WITH_APPLE, DISABLE_LOGIN_WITH_GOOGLE } from '@/consts'
+import {
+  DISABLE_LOGIN_WITH_APPLE,
+  DISABLE_LOGIN_WITH_GOOGLE,
+  isRegistrationDisabled
+} from '@/consts'
 
 interface SocialLoginProps {
   isSignUp?: boolean
@@ -18,7 +22,7 @@ const SocialIcon: FC<{ children: ReactNode }> = ({ children }) => (
   </span>
 )
 
-const SocialLogin: FC<SocialLoginProps> = () => {
+const SocialLogin: FC<SocialLoginProps> = ({ isSignUp }) => {
   const { t } = useTranslation()
   const router = useRouter()
   const providers = [
@@ -60,7 +64,7 @@ const SocialLogin: FC<SocialLoginProps> = () => {
     })
   }
 
-  if (providers.length < 1) {
+  if (providers.length < 1 || (isSignUp && isRegistrationDisabled())) {
     return null
   }
 

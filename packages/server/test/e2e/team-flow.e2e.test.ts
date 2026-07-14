@@ -15,18 +15,18 @@ import {
   DISSOLVE_TEAM_GQL,
   FORMS_GQL,
   FORM_DETAIL_GQL,
-  JOIN_TEAM_GQL,
   MOVE_FORM_TO_TRASH_GQL,
   OPEN_FORM_GQL,
   PUBLIC_FORM_GQL,
   PUBLISH_FORM_GQL,
+  SIGN_UP_GQL,
   SUBMISSIONS_GQL,
   TEAMS_GQL,
   TEAM_MEMBERS_GQL,
   UPDATE_FORM_SCHEMAS_GQL,
   UPDATE_SUBMISSIONS_CATEGORY_GQL
 } from './helpers/gql'
-import { randomString, uniqueName } from './helpers/random'
+import { randomString, strongPassword, uniqueEmail, uniqueName } from './helpers/random'
 import { defineSuite } from './helpers/runner'
 import { seedProjectMember, seedTeamMember } from './helpers/seed'
 import { readLatestVerificationCode } from './helpers/verification'
@@ -92,15 +92,32 @@ export function build(baseUrl: string) {
     state.seedProjectId = team.projects[0].id
   })
 
-  test('collaborator joins the workspace via invite code', async () => {
-    const { teamId, inviteCode } = need(state, ['teamId', 'inviteCode'])
-    const collaborator = await signUpUser(baseUrl, { name: uniqueName('Collab') })
-    state.collaborator = collaborator
-
-    const ok = await collaborator.client.gqlOk<boolean>('joinTeam', JOIN_TEAM_GQL, {
-      input: { teamId, inviteCode }
+  test('sign-up rejects an invalid workspace invitation', async () => {
+    const { teamId } = need(state, ['teamId'])
+    const client = new E2EClient({ baseUrl })
+    const result = await client.gql('signUp', SIGN_UP_GQL, {
+      input: {
+        name: uniqueName('Invalid Invite'),
+        email: uniqueEmail('invalid-invite'),
+        password: strongPassword(),
+        teamId,
+        inviteCode: 'totally-wrong-code'
+      }
     })
-    assert.strictEqual(ok, true)
+
+    assert.ok(result.errors.length > 0, 'invalid invitation should error')
+    assert.match(result.errors[0].message, /invitation.*invalid|invalid.*invitation/i)
+    assert.strictEqual(client.isAuthenticated(), false)
+  })
+
+  test('collaborator joins the workspace during sign-up with an invitation', async () => {
+    const { teamId, inviteCode } = need(state, ['teamId', 'inviteCode'])
+    const collaborator = await signUpUser(baseUrl, {
+      name: uniqueName('Collab'),
+      teamId,
+      inviteCode
+    })
+    state.collaborator = collaborator
 
     const teams = await collaborator.client.gqlOk<any[]>('teams', TEAMS_GQL)
     assert.ok(

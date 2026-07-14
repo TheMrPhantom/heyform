@@ -1,6 +1,7 @@
-import { Controller, Get, Header, Redirect, Res } from '@nestjs/common'
-import { Response } from 'express'
+import { Controller, Get, Header, Redirect, Req, Res } from '@nestjs/common'
+import { Request, Response } from 'express'
 
+import { COOKIE_INVITATION_NAME } from '@config'
 import {
   APP_DISABLE_REGISTRATION,
   APP_HOMEPAGE_URL,
@@ -37,8 +38,8 @@ export class DashboardController {
   favicon() {}
 
   @Get('/sign-up')
-  signUp(@Res() res: Response) {
-    if (APP_DISABLE_REGISTRATION) {
+  signUp(@Req() req: Request, @Res() res: Response) {
+    if (APP_DISABLE_REGISTRATION && !req.cookies?.[COOKIE_INVITATION_NAME]) {
       return res.redirect(302, '/login')
     }
 
