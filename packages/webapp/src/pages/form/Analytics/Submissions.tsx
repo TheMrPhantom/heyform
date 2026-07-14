@@ -4,7 +4,7 @@ import { FC, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SubmissionService } from '@/services'
-import { timeFromNow, useParam } from '@/utils'
+import { getFileUploadValue, timeFromNow, useParam } from '@/utils'
 import { helper } from '@heyform-inc/utils'
 
 import { Pagination, useToast } from '@/components'
@@ -82,8 +82,15 @@ const AnswerValue: FC<{ answer: AnyMap }> = ({ answer }) => {
     case FieldKindEnum.DATE_RANGE:
       return answer.value && [answer.value.start, answer.value.end].filter(Boolean).join(' - ')
 
-    case FieldKindEnum.FILE_UPLOAD:
-      return <div>{answer.value?.filename}</div>
+    case FieldKindEnum.FILE_UPLOAD: {
+      const value = getFileUploadValue(answer.value)
+
+      return value ? (
+        <a href={value.url} target="_blank" rel="noreferrer">
+          {value.filename}
+        </a>
+      ) : null
+    }
 
     case FieldKindEnum.SIGNATURE:
       return <div>{t('form.builder.question.signature')}</div>

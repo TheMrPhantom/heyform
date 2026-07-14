@@ -4,7 +4,7 @@ import Big from 'big.js'
 import { FC, Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { cn, formatDay, unixDate } from '@/utils'
+import { cn, formatDay, getFileUploadValue, unixDate } from '@/utils'
 import { CURRENCY_SYMBOLS, htmlUtils } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
@@ -97,31 +97,31 @@ const DateRangeItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) 
 }
 
 const FileUploadItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) => {
-  if (answer.kind !== field.kind || !helper.isObject(answer.value)) {
+  const value = getFileUploadValue(answer.value)
+
+  if (answer.kind !== field.kind || !value) {
     return null
   }
 
-  const filename = encodeURIComponent(answer.value.filename)
-  const downloadUrl = `${answer.value.cdnUrlPrefix}/${answer.value.cdnKey}?attname=${filename}`
-
   if (isTableCell) {
     return (
-      <div className="flex gap-1">
+      <a
+        className="flex gap-1"
+        href={value.url}
+        target="_blank"
+        rel="noreferrer"
+        onClick={event => event.stopPropagation()}
+      >
         <IconFile className="text-secondary h-5 w-5" />
-        <div className="flex-1 truncate">{answer.value.filename}</div>
-      </div>
+        <div className="flex-1 truncate">{value.filename}</div>
+      </a>
     )
   }
 
   return (
-    <a
-      className="inline-flex gap-1 text-nowrap"
-      href={downloadUrl}
-      target="_blank"
-      rel="noreferrer"
-    >
+    <a className="inline-flex gap-1 text-nowrap" href={value.url} target="_blank" rel="noreferrer">
       <IconFile className="text-secondary h-5 w-5" />
-      <div className="flex-1 whitespace-nowrap">{answer.value.filename}</div>
+      <div className="flex-1 whitespace-nowrap">{value.filename}</div>
     </a>
   )
 }

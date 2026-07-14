@@ -60,14 +60,14 @@ export class Uploader {
   }
 
   async uploadFile(field: UploaderField): Promise<Record<string, FileUploadValue | string>> {
-    const { url } = await UploadService.upload(field.value as File, {
+    const result = await UploadService.upload(field.value as File, {
       fieldId: field.id,
       formId: this.form.id,
       openToken: this.openToken
     })
 
     return {
-      [field.id]: url
+      [field.id]: field.kind === FieldKindEnum.SIGNATURE ? result.url : result
     }
   }
 
