@@ -15,6 +15,29 @@ import { SubmissionModel } from '@model'
 const FIELD_ID_KEY = '#'
 const START_DATE_KEY = 'Start Date (UTC)'
 const SUBMIT_DATE_KEY = 'Submit Date (UTC)'
+const SPREADSHEET_FORMULA_PREFIXES = new Set(['=', '+', '-', '@'])
+
+function neutralizeSpreadsheetFormula(value: string): string {
+  let index = 0
+
+  while (index < value.length) {
+    const character = value[index]
+    const code = character.charCodeAt(0)
+    const isControlCharacter = code <= 0x1f || (code >= 0x7f && code <= 0x9f)
+
+    if (!isControlCharacter && character.trim() !== '') {
+      break
+    }
+
+    index += 1
+  }
+
+  if (SPREADSHEET_FORMULA_PREFIXES.has(value[index])) {
+    return `'${value}`
+  }
+
+  return value
+}
 
 @Injectable()
 export class ExportFileService {
@@ -27,7 +50,9 @@ export class ExportFileService {
       .filter(field => !STATEMENT_FIELD_KINDS.includes(field.kind))
       .map(field => ({
         ...field,
-        title: helper.isArray(field.title) ? htmlUtils.serialize(field.title) : field.title
+        title: neutralizeSpreadsheetFormula(
+          helper.isArray(field.title) ? htmlUtils.serialize(field.title) : String(field.title || '')
+        )
       }))
 
     const fields: FieldInfo<SubmissionModel>[] = [
@@ -40,13 +65,18 @@ export class ExportFileService {
         value: (submission: SubmissionModel) => {
           const answer = submission.answers.find(answer => answer.id === field.id)
 
-          return helper.isEmpty(answer) ? '' : this.parseAnswer(answer)
+          return helper.isEmpty(answer)
+            ? ''
+            : neutralizeSpreadsheetFormula(this.parseAnswer(answer))
         }
       })),
       ...selectedHiddenFields.map(hiddenField => ({
-        label: hiddenField.name,
-        value: (submission: SubmissionModel) =>
-          submission.hiddenFields.find(answer => answer.id === hiddenField.id)?.value
+        label: neutralizeSpreadsheetFormula(hiddenField.name),
+        value: (submission: SubmissionModel) => {
+          const value = submission.hiddenFields.find(answer => answer.id === hiddenField.id)?.value
+
+          return helper.isString(value) ? neutralizeSpreadsheetFormula(value) : value
+        }
       })),
       {
         label: START_DATE_KEY,

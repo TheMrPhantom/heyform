@@ -2,6 +2,34 @@ import got from 'got'
 
 import { assertSafeOutboundRequest } from '@utils'
 
+export const WEBHOOK_MAX_RESPONSE_BYTES = 64 * 1024
+
+interface WebhookResponseStream extends AsyncIterable<Buffer | string> {
+  destroy(error?: Error): void
+}
+
+export async function readLimitedWebhookResponse(
+  response: WebhookResponseStream,
+  maxBytes = WEBHOOK_MAX_RESPONSE_BYTES
+): Promise<string> {
+  const chunks: Buffer[] = []
+  let totalBytes = 0
+
+  for await (const chunk of response) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    totalBytes += buffer.length
+
+    if (totalBytes > maxBytes) {
+      response.destroy()
+      throw new Error(`Webhook response exceeds the ${maxBytes} byte limit`)
+    }
+
+    chunks.push(buffer)
+  }
+
+  return Buffer.concat(chunks, totalBytes).toString('utf8')
+}
+
 export default {
   id: 'webhook',
   name: 'Webhook',
@@ -20,20 +48,29 @@ export default {
   run: async ({ config, submission, form }) => {
     const { lookup, url: endpointUrl } = await assertSafeOutboundRequest(config.endpointUrl)
 
-    return got
-      .post(endpointUrl.toString(), {
-        followRedirect: false,
-        lookup,
-        json: {
-          id: submission.id,
-          formId: form.id,
-          formName: form.name,
-          fields: form.fields,
-          answers: submission.answers,
-          hiddenFields: submission.hiddenFields,
-          variables: submission.variables
-        }
-      })
-      .text()
+    const response = got.stream.post(endpointUrl.toString(), {
+      followRedirect: false,
+      lookup,
+      retry: 0,
+      timeout: {
+        connect: 5_000,
+        secureConnect: 5_000,
+        send: 5_000,
+        response: 10_000,
+        socket: 10_000,
+        request: 15_000
+      },
+      json: {
+        id: submission.id,
+        formId: form.id,
+        formName: form.name,
+        fields: form.fields,
+        answers: submission.answers,
+        hiddenFields: submission.hiddenFields,
+        variables: submission.variables
+      }
+    })
+
+    return readLimitedWebhookResponse(response)
   }
 }
