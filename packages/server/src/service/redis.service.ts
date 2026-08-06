@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRedis } from '@svtslv/nestjs-ioredis'
 import { Redis } from 'ioredis'
 
@@ -25,6 +25,14 @@ interface HdelOptions extends BaseOptions {
   field?: string | string[]
 }
 
+const RATE_LIMIT_SCRIPT = `
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then
+  redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+return {count, redis.call('TTL', KEYS[1])}
+`
+
 @Injectable()
 export class RedisService {
   constructor(@InjectRedis() private readonly redis: Redis) {}
@@ -40,25 +48,23 @@ export class RedisService {
   }
 
   public async throttler(key: string, limit: number, ttl: string) {
-    const cache = await this.get(key)
-    let count = 0
+    const duration = hs(ttl)
 
-    if (!cache) {
-      await this.multi([
-        ['incr', key],
-        ['expire', key, hs(ttl)]
-      ])
-    } else {
-      count = parseInt(cache, 0)
+    if (!duration) {
+      throw new Error(`Invalid rate limit duration: ${ttl}`)
     }
 
-    if (count >= limit) {
-      const timeLeft = await this.redis.ttl(key)
+    const [count, timeLeft] = (await this.redis.eval(RATE_LIMIT_SCRIPT, 1, key, duration)) as [
+      number,
+      number
+    ]
 
-      throw new ConflictException(`Too many requests. Please try again in ${timeLeft} seconds.`)
+    if (count > limit) {
+      throw new HttpException(
+        `Too many requests. Please try again in ${Math.max(timeLeft, 0)} seconds.`,
+        HttpStatus.TOO_MANY_REQUESTS
+      )
     }
-
-    await this.incr(key)
   }
 
   public set({ key, value, duration }: SetOptions): Promise<any> {
@@ -94,6 +100,19 @@ export class RedisService {
       return this.redis.hdel(key, field as KeyType)
     }
     return this.del(key)
+  }
+
+  /**
+   * Atomically read and remove a hash field. This uses Lua for compatibility
+   * with Redis versions that do not provide HGETDEL.
+   */
+  public hgetdel({ key, field }: Required<HgetOptions>): Promise<string | null> {
+    return this.redis.eval(
+      "local value = redis.call('HGET', KEYS[1], ARGV[1]); if value then redis.call('HDEL', KEYS[1], ARGV[1]); end; return value",
+      1,
+      key,
+      field
+    ) as Promise<string | null>
   }
 
   public multi(commands: any[][]): Promise<[Error | null, any][]> {

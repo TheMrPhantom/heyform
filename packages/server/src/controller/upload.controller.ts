@@ -7,24 +7,29 @@ import {
   UseInterceptors
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { extname } from 'path'
+import type { Request } from 'express'
 
-import { COOKIE_DEVICE_ID_NAME, getMulterStorage, removeUploadedFile } from '@config'
-import { APP_HOMEPAGE_URL, S3_PUBLIC_URL, UPLOAD_FILE_SIZE, UPLOAD_FILE_TYPES } from '@environments'
-import { helper } from '@heyform-inc/utils'
-import { AuthService, EndpointService, FormService } from '@service'
-import { isAllowedUploadField } from '@utils'
-
-const BLOCKED_UPLOAD_EXTENSIONS = new Set(['.svg', '.svgz'])
-const BLOCKED_UPLOAD_MIME_TYPES = new Set(['image/svg+xml', 'application/svg+xml'])
+import {
+  COOKIE_DEVICE_ID_NAME,
+  getMulterStorage,
+  isUploadFileContentValid,
+  saveUploadedFile,
+  uploadFileFilter
+} from '@config'
+import { APP_HOMEPAGE_URL, UPLOAD_FILE_SIZE } from '@environments'
+import { helper, timestamp } from '@heyform-inc/utils'
+import { AuthService, EndpointService, FormService, RedisService } from '@service'
+import { isAllowedUploadField, md5 } from '@utils'
 
 function getUploadContextValue(
-  req: any,
+  req: Request,
   key: 'fieldId' | 'formId' | 'openToken'
 ): string | undefined {
   const headerName = `x-heyform-${key.replace(/[A-Z]/g, matched => `-${matched.toLowerCase()}`)}`
   const value = req.get?.(headerName) || req.query?.[key]
-  return Array.isArray(value) ? value[0] : value
+  const firstValue = Array.isArray(value) ? value[0] : value
+
+  return typeof firstValue === 'string' ? firstValue : undefined
 }
 
 @Controller()
@@ -32,7 +37,8 @@ export class UploadController {
   constructor(
     private readonly authService: AuthService,
     private readonly endpointService: EndpointService,
-    private readonly formService: FormService
+    private readonly formService: FormService,
+    private readonly redisService: RedisService
   ) {}
 
   @Post('/api/upload')
@@ -41,58 +47,46 @@ export class UploadController {
       limits: {
         fileSize: UPLOAD_FILE_SIZE
       },
+      fileFilter: uploadFileFilter,
       storage: getMulterStorage()
     })
   )
   async index(
-    @Req() req: any,
-    @UploadedFile() file: any
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File
   ): Promise<{ filename: string; url: string; size: number }> {
-    try {
-      if (!file) {
-        throw new BadRequestException('No upload file provided')
-      }
-
-      this.assertFileTypeAllowed(file)
-      await this.assertUploadAllowed(req)
-    } catch (error) {
-      await removeUploadedFile(file)
-      throw error
+    if (!file) {
+      throw new BadRequestException('No supported upload file provided')
     }
 
-    let url: string =
-      APP_HOMEPAGE_URL.replace(/\/+$/, '') + `/static/upload/${encodeURIComponent(file.filename)}`
+    await this.assertUploadAllowed(req)
 
-    if (file.location) {
-      if (helper.isValid(S3_PUBLIC_URL)) {
-        url = `${S3_PUBLIC_URL.replace(/\/+$/, '')}/${file.key}`
-      } else {
-        url = file.location
-      }
+    if (!isUploadFileContentValid(file)) {
+      throw new BadRequestException('The uploaded file contents do not match its file type')
+    }
+
+    const savedFile = await saveUploadedFile(file)
+
+    let url: string =
+      APP_HOMEPAGE_URL.replace(/\/+$/, '') +
+      `/static/upload/${encodeURIComponent(savedFile.filename)}`
+
+    if (savedFile.location) {
+      url = savedFile.location
     }
 
     return {
-      filename: file.originalname,
-      size: file.size,
+      filename: savedFile.originalname,
+      size: savedFile.size,
       url
     }
   }
 
-  private assertFileTypeAllowed(file: any): void {
-    const extension = extname(file.originalname).toLowerCase()
-    const mimeType = String(file.mimetype || '').toLowerCase()
+  private async assertUploadAllowed(req: Request): Promise<void> {
+    const sessionId = await this.getAuthenticatedSessionId(req)
 
-    if (
-      BLOCKED_UPLOAD_EXTENSIONS.has(extension) ||
-      BLOCKED_UPLOAD_MIME_TYPES.has(mimeType) ||
-      !UPLOAD_FILE_TYPES.includes(mimeType)
-    ) {
-      throw new BadRequestException(`Unsupported file type ${extname(file.originalname)}`)
-    }
-  }
-
-  private async assertUploadAllowed(req: any): Promise<void> {
-    if (await this.isAuthenticatedRequest(req)) {
+    if (sessionId) {
+      await this.redisService.throttler(`upload:session:${md5(sessionId)}`, 300, '1h')
       return
     }
 
@@ -104,24 +98,29 @@ export class UploadController {
       throw new BadRequestException('Invalid upload context')
     }
 
-    const token = this.endpointService.decryptToken(openToken)
-
-    if (token.formId !== formId) {
-      throw new BadRequestException('Invalid upload context')
-    }
-
     const form = await this.formService.findById(formId)
 
     if (!form || form.suspended || form.settings?.active !== true) {
       throw new BadRequestException('The form is not available')
     }
 
+    const token = this.endpointService.decryptToken(openToken)
+    this.endpointService.assertOpenToken(token, formId, form.settings, timestamp())
+
     if (!isAllowedUploadField(form, fieldId)) {
       throw new BadRequestException('The upload field is not allowed')
     }
+
+    // A public form token is intentionally obtainable by respondents, so cap both reuse of a
+    // single token and aggregate orphan uploads for a form. Redis keeps the limit consistent
+    // across application replicas.
+    await Promise.all([
+      this.redisService.throttler(`upload:form:${formId}`, 300, '1h'),
+      this.redisService.throttler(`upload:token:${md5(openToken)}`, 10, '1h')
+    ])
   }
 
-  private async isAuthenticatedRequest(req: any): Promise<boolean> {
+  private async getAuthenticatedSessionId(req: Request): Promise<string | undefined> {
     const session = this.authService.getSession(req)
     const deviceId = req.get('x-device-id') || req.cookies?.[COOKIE_DEVICE_ID_NAME]
 
@@ -130,9 +129,13 @@ export class UploadController {
       helper.isEmpty(session?.deviceId) ||
       deviceId !== session.deviceId
     ) {
-      return false
+      return
     }
 
-    return !(await this.authService.isExpired(session.id, session.deviceId))
+    if (await this.authService.isExpired(session.id, session.deviceId)) {
+      return
+    }
+
+    return session.id
   }
 }

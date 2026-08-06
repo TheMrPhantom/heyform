@@ -29,6 +29,7 @@ const ALLOWED_ATTRIBUTES = [
 const UNSAFE_URL_PROTOCOLS = new Set(['javascript', 'vbscript', 'data'])
 const URL_PROTOCOL_CONTROL_CHARS_REGEX = /[\u0000-\u001f\u007f\s]+/g
 const UNSAFE_CUSTOM_CSS_REGEX = /[<>\u0000]/
+const UNSAFE_CSS_VALUE_REGEX = /[<>{};]/
 
 function isUnsafeUrlProtocol(value: unknown): boolean {
   const matched = String(value || '')
@@ -156,4 +157,12 @@ export function isSafeCustomCSS(value?: string): boolean {
   }
 
   return !UNSAFE_CUSTOM_CSS_REGEX.test(value)
+}
+
+export function isSafeCSSValue(value?: string): boolean {
+  if (value === undefined || value === null || value === '') {
+    return true
+  }
+
+  return !UNSAFE_CSS_VALUE_REGEX.test(value) && !value.includes('\u0000')
 }

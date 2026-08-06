@@ -22,6 +22,7 @@ export const APP_LISTEN_PORT: number = +process.env.APP_LISTEN_PORT || 9157
 export const APP_LISTEN_HOSTNAME: string = process.env.APP_LISTEN_HOSTNAME || '0.0.0.0'
 export const APP_HOMEPAGE_URL: string =
   process.env.APP_HOMEPAGE_URL || `http://${APP_LISTEN_HOSTNAME}:${APP_LISTEN_PORT}`
+export const TRUST_PROXY: boolean | number | string = parseTrustProxy(process.env.TRUST_PROXY)
 export const CORS_ALLOWED_ORIGINS: string[] = (process.env.CORS_ALLOWED_ORIGINS || APP_HOMEPAGE_URL)
   .split(',')
   .map(origin => origin.trim())
@@ -159,3 +160,21 @@ export const S3_BUCKET = process.env.S3_BUCKET
 export const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID
 export const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY
 export const S3_PUBLIC_URL = process.env.S3_PUBLIC_URL
+
+export function parseTrustProxy(value?: string): boolean | number | string {
+  const normalized = value?.trim()
+
+  if (!normalized || normalized.toLowerCase() === 'false') {
+    return false
+  }
+
+  if (normalized.toLowerCase() === 'true') {
+    return true
+  }
+
+  if (/^\d+$/.test(normalized)) {
+    return Number(normalized)
+  }
+
+  return normalized
+}

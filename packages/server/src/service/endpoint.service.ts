@@ -1,4 +1,4 @@
-import { CaptchaKindEnum, FieldKindEnum } from '@heyform-inc/shared-types-enums'
+import { CaptchaKindEnum, FieldKindEnum, FormSettings } from '@heyform-inc/shared-types-enums'
 import { BadRequestException, Injectable } from '@nestjs/common'
 
 import {
@@ -8,7 +8,7 @@ import {
   GOOGLE_RECAPTCHA_SECRET
 } from '@environments'
 import { helper } from '@heyform-inc/utils'
-import { aesDecryptObject, akismet, recaptcha } from '@utils'
+import { aesDecryptObject, akismet, assertOpenToken, recaptcha } from '@utils'
 import { Logger } from '@utils'
 
 interface VerifySpamOptions {
@@ -41,6 +41,15 @@ export class EndpointService {
     return obj
   }
 
+  assertOpenToken(
+    token: Record<string, any>,
+    formId: string,
+    settings: FormSettings,
+    now: number
+  ): number {
+    return assertOpenToken(token, formId, settings, now)
+  }
+
   async antiBotCheck(captchaKind: CaptchaKindEnum, input: any): Promise<void> {
     let result: any
 
@@ -50,7 +59,7 @@ export class EndpointService {
         break
     }
 
-    if (helper.isEmpty(result)) {
+    if (result !== true) {
       throw new BadRequestException('Failed to pass the bot-detection check')
     }
   }

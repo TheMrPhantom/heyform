@@ -74,7 +74,9 @@ export function normalizeUrlOrigin(url: URL): string {
 }
 
 function isDevelopment(): boolean {
-  return (process.env.NODE_ENV || 'development') === 'development'
+  return (
+    process.env.NODE_ENV === 'development' && process.env.HEYFORM_ALLOW_PRIVATE_OUTBOUND === 'true'
+  )
 }
 
 export function isIPv4(address: string): boolean {

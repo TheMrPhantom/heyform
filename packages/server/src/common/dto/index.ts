@@ -4,6 +4,8 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Max,
+  Min,
   Validate,
   ValidatorConstraint,
   ValidatorConstraintInterface
@@ -102,13 +104,17 @@ export class ImageResizingDto {
   @Validate(IsAllowedImageUrlConstraint)
   url: string
 
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) => (value === undefined ? undefined : Number(value)))
   @IsInt()
+  @Min(1)
+  @Max(4096)
   @IsOptional()
   w?: number
 
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) => (value === undefined ? undefined : Number(value)))
   @IsInt()
+  @Min(1)
+  @Max(4096)
   @IsOptional()
   h?: number
 }

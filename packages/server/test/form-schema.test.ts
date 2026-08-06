@@ -1,6 +1,6 @@
 import * as assert from 'assert'
 
-import { isSafeCustomCSS, sanitizeFormDrafts } from '../src/utils/form-schema'
+import { isSafeCSSValue, isSafeCustomCSS, sanitizeFormDrafts } from '../src/utils/form-schema'
 
 function testSanitizesDraftRichText() {
   const drafts = sanitizeFormDrafts([
@@ -129,12 +129,32 @@ function testCustomCssRejectsHtmlBreakingCharacters() {
   assert.strictEqual(isSafeCustomCSS('body:before { content: "<"; }'), false)
 }
 
+function testCssValueRejectsRuleBreakingCharacters() {
+  assert.strictEqual(isSafeCSSValue(undefined), true)
+  assert.strictEqual(isSafeCSSValue(''), true)
+  assert.strictEqual(isSafeCSSValue('https://forms.example.com/background.png?x=1&y=2'), true)
+  assert.strictEqual(isSafeCSSValue('rgba(255, 255, 255, 0.8)'), true)
+  assert.strictEqual(isSafeCSSValue('linear-gradient(to right, #fff 0%, #000 100%)'), true)
+  assert.strictEqual(isSafeCSSValue('radial-gradient(circle, #fff 0%, #000 100%)'), true)
+  assert.strictEqual(
+    isSafeCSSValue('http://a.com/x);}body::after{content:"PWNED";position:fixed}/*'),
+    false
+  )
+  assert.strictEqual(isSafeCSSValue('url(image.png); color: red'), false)
+  assert.strictEqual(isSafeCSSValue('linear-gradient(#fff, #000)\u0000'), false)
+
+  for (const character of ['<', '>', '{', '}', ';', '\u0000']) {
+    assert.strictEqual(isSafeCSSValue(`red${character}`), false)
+  }
+}
+
 function run() {
   testSanitizesDraftRichText()
   testSanitizesNestedGroupDrafts()
   testDropsUnsafeHrefProtocols()
   testDropsControlCharacterSplitUnsafeHrefProtocols()
   testCustomCssRejectsHtmlBreakingCharacters()
+  testCssValueRejectsRuleBreakingCharacters()
 }
 
 if (require.main === module) {

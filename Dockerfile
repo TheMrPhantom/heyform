@@ -25,6 +25,7 @@ RUN cp $APP_PATH/packages/webapp/dist/index.html $APP_PATH/packages/server/view/
 FROM node:18.20.0-alpine3.19 AS runner
 
 ARG APP_PATH=/app
+ENV NODE_ENV=production
 WORKDIR $APP_PATH
 
 RUN npm install -g pnpm@9

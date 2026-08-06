@@ -8,11 +8,12 @@ import * as helmet from 'helmet'
 import { extname } from 'path'
 import * as serveStatic from 'serve-static'
 
-import { corsOrigin } from '@config'
+import { corsOrigin, getUploadContentDisposition, sanitizeUploadFilename } from '@config'
 import {
   APP_LISTEN_HOSTNAME,
   APP_LISTEN_PORT,
   STATIC_DIR,
+  TRUST_PROXY,
   UPLOAD_DIR,
   VIEW_DIR
 } from '@environments'
@@ -49,7 +50,7 @@ async function bootstrap() {
   app.use(cookieParser())
 
   // see https://expressjs.com/en/guide/behind-proxies.html
-  app.set('trust proxy', 1)
+  app.set('trust proxy', TRUST_PROXY)
 
   // Static assets
   app.use('/static/upload', (req, res, next) => {
@@ -68,11 +69,16 @@ async function bootstrap() {
       extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'],
       setHeaders: res => {
         const { attname } = res.req.query
+        const extension = extname(res.req.path).toLowerCase()
+        const mimeType = ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.webp'].includes(extension)
+          ? 'image/raster'
+          : 'application/octet-stream'
+        const filename = helper.isValid(attname)
+          ? sanitizeUploadFilename(Array.isArray(attname) ? attname[0] : attname)
+          : res.req.path
 
-        if (helper.isValid(attname)) {
-          res.setHeader('Content-Disposition', `attachment; filename="${attname}"`)
-        }
-
+        res.setHeader('Content-Disposition', getUploadContentDisposition(filename, mimeType))
+        res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
         res.setHeader('X-Content-Type-Options', 'nosniff')
       }
     })
@@ -87,7 +93,13 @@ async function bootstrap() {
         const { attname } = res.req.query
 
         if (helper.isValid(attname)) {
-          res.setHeader('Content-Disposition', `attachment; filename="${attname}"`)
+          const filename = Array.isArray(attname) ? attname[0] : attname
+
+          res.setHeader(
+            'Content-Disposition',
+            getUploadContentDisposition(filename, 'application/octet-stream', true)
+          )
+          res.setHeader('X-Content-Type-Options', 'nosniff')
         }
       }
     })
@@ -102,6 +114,24 @@ async function bootstrap() {
    * Limit the number of user's requests
    * 1000 requests per minute
    */
+  app.use(
+    '/api/upload',
+    rateLimit({
+      headers: false,
+      windowMs: ms('1m'),
+      max: 30
+    })
+  )
+
+  app.use(
+    '/api/image',
+    rateLimit({
+      headers: false,
+      windowMs: ms('1m'),
+      max: 120
+    })
+  )
+
   app.use(
     rateLimit({
       headers: false,
