@@ -6,7 +6,7 @@ import {
   STATEMENT_FIELD_KINDS
 } from '@heyform-inc/shared-types-enums'
 import { Injectable } from '@nestjs/common'
-import { parseAsync } from 'json2csv'
+import { FieldInfo, parseAsync } from 'json2csv'
 
 import { htmlUtils, parsePlainAnswer } from '@heyform-inc/answer-utils'
 import { helper, unixDate } from '@heyform-inc/utils'
@@ -23,7 +23,6 @@ export class ExportFileService {
     selectedHiddenFields: HiddenField[],
     submissions: SubmissionModel[]
   ): Promise<string> {
-    const records: Record<string, any>[] = []
     const selectedFormFields = formFields
       .filter(field => !STATEMENT_FIELD_KINDS.includes(field.kind))
       .map(field => ({
@@ -31,46 +30,35 @@ export class ExportFileService {
         title: helper.isArray(field.title) ? htmlUtils.serialize(field.title) : field.title
       }))
 
-    const fields: string[] = [
-      FIELD_ID_KEY,
-      ...selectedFormFields.map(field => field.title),
-      ...selectedHiddenFields.map(hiddenField => hiddenField.name),
-      START_DATE_KEY,
-      SUBMIT_DATE_KEY
+    const fields: FieldInfo<SubmissionModel>[] = [
+      {
+        label: FIELD_ID_KEY,
+        value: submission => submission.id
+      },
+      ...selectedFormFields.map(field => ({
+        label: field.title,
+        value: (submission: SubmissionModel) => {
+          const answer = submission.answers.find(answer => answer.id === field.id)
+
+          return helper.isEmpty(answer) ? '' : this.parseAnswer(answer)
+        }
+      })),
+      ...selectedHiddenFields.map(hiddenField => ({
+        label: hiddenField.name,
+        value: (submission: SubmissionModel) =>
+          submission.hiddenFields.find(answer => answer.id === hiddenField.id)?.value
+      })),
+      {
+        label: START_DATE_KEY,
+        value: submission => (submission.startAt ? unixDate(submission.startAt).toISOString() : '')
+      },
+      {
+        label: SUBMIT_DATE_KEY,
+        value: submission => (submission.startAt ? unixDate(submission.endAt!).toISOString() : '')
+      }
     ]
 
-    for (const submission of submissions) {
-      const record: Record<string, any> = {
-        [FIELD_ID_KEY]: submission.id
-      }
-
-      for (const field of selectedFormFields) {
-        let answer: any = submission.answers.find(answer => answer.id === field.id)
-
-        if (helper.isEmpty(answer)) {
-          answer = ''
-        } else {
-          answer = this.parseAnswer(answer)
-        }
-
-        record[field.title] = answer
-      }
-
-      for (const selectedHiddenField of selectedHiddenFields) {
-        const hiddenFieldValue = submission.hiddenFields.find(
-          hiddenField => hiddenField.id === selectedHiddenField.id
-        )?.value
-
-        record[selectedHiddenField.name] = hiddenFieldValue
-      }
-
-      record[START_DATE_KEY] = submission.startAt ? unixDate(submission.startAt!).toISOString() : ''
-      record[SUBMIT_DATE_KEY] = submission.startAt ? unixDate(submission.endAt!).toISOString() : ''
-
-      records.push(record)
-    }
-
-    return parseAsync(records, {
+    return parseAsync(submissions, {
       fields
     })
   }
@@ -85,7 +73,20 @@ export class ExportFileService {
 
     switch (answer?.kind) {
       case FieldKindEnum.FILE_UPLOAD:
-        result = helper.isObject(value) ? value.url : helper.isString(value) ? value : ''
+        if (helper.isString(value)) {
+          result = value
+        } else if (helper.isObject(value)) {
+          if (helper.isString(value.url)) {
+            result = value.url
+          } else {
+            const prefix = value.urlPrefix || value.cdnUrlPrefix
+            const key = value.key || value.cdnKey
+
+            if (helper.isString(prefix) && helper.isString(key)) {
+              result = `${prefix.replace(/\/+$/, '')}/${key.replace(/^\/+/, '')}`
+            }
+          }
+        }
         break
 
       default:
