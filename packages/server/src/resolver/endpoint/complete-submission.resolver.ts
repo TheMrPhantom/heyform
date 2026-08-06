@@ -22,7 +22,14 @@ import {
   SubmissionIpLimitService,
   SubmissionService
 } from '@service'
-import { ClientInfo, GqlClient, normalizeSubmissionHiddenFields } from '@utils'
+import {
+  ClientInfo,
+  GqlClient,
+  assertFormIsAcceptingSubmissions,
+  normalizeSubmissionHiddenFields,
+  resolvePaymentConfiguration,
+  selectSubmissionFields
+} from '@utils'
 
 @Resolver()
 @UseGuards(EndpointAnonymousIdGuard)
@@ -55,6 +62,9 @@ export class CompleteSubmissionResolver {
     if (form.settings.active !== true) {
       throw new BadRequestException('The form does not active')
     }
+
+    const now = timestamp()
+    assertFormIsAcceptingSubmissions(form.settings, now)
 
     if (helper.isEmpty(form!.fields)) {
       throw new BadRequestException('The form does not have content')
@@ -94,11 +104,12 @@ export class CompleteSubmissionResolver {
     // Start submit time
     const openToken = this.endpointService.decryptToken(input.openToken)
 
-    if (openToken.formId !== input.formId) {
-      throw new BadRequestException('Invalid form token')
-    }
-
-    const { timestamp: startAt } = openToken
+    const startAt = this.endpointService.assertOpenToken(
+      openToken,
+      input.formId,
+      form.settings,
+      now
+    )
 
     // Bot prevention check
     if (form.settings?.captchaKind !== CaptchaKindEnum.NONE) {
@@ -108,16 +119,23 @@ export class CompleteSubmissionResolver {
     // Verify user submit content
     let answers: Answer[] = []
     let variables: Variable[] = []
+    let variableValues: Record<string, any> = {}
 
     try {
-      const { fields, variables: variableValues } = applyLogicToFields(
+      const logicResult = applyLogicToFields(
         flattenFields(form.fields, true),
         form.logics,
         form.variables,
         input.answers
       )
+      const fields = selectSubmissionFields(
+        logicResult.fields,
+        form.logics,
+        input.partialSubmission === true
+      )
+      variableValues = logicResult.variables
 
-      answers = fieldValuesToAnswers(fields, input.answers, input.partialSubmission)
+      answers = fieldValuesToAnswers(fields, input.answers)
       variables = form.variables?.map(variable => ({
         ...variable,
         value: variableValues[variable.id]
@@ -149,6 +167,24 @@ export class CompleteSubmissionResolver {
 
     const endAt = timestamp()
 
+    // Payment amounts and currencies are always derived from the published form
+    // configuration, never from respondent-controlled answer values.
+    const paymentAnswers = answers.filter(answer => answer.kind === FieldKindEnum.PAYMENT)
+
+    for (const paymentAnswer of paymentAnswers) {
+      const payment = resolvePaymentConfiguration(paymentAnswer.properties, variableValues)
+      const billingName = paymentAnswer.value?.billingDetails?.name
+
+      paymentAnswer.value = {
+        ...payment,
+        billingDetails: {
+          name: typeof billingName === 'string' ? billingName : ''
+        }
+      }
+    }
+
+    const paymentAnswer = paymentAnswers[0]
+
     const submissionId = await this.submissionService.create({
       teamId: form.teamId,
       formId: form.id,
@@ -165,24 +201,23 @@ export class CompleteSubmissionResolver {
     })
 
     // Payment
-    const answer = answers.find(a => a.kind === FieldKindEnum.PAYMENT)
     const result: CompleteSubmissionType = {}
 
-    if (helper.isValid(answer) && helper.isValid(form.stripeAccount)) {
+    if (helper.isValid(paymentAnswer) && helper.isValid(form.stripeAccount)) {
       result.clientSecret = await this.paymentService.createPaymentIntent({
-        amount: answer.value.amount,
-        currency: answer.value.currency,
+        amount: paymentAnswer.value.amount,
+        currency: paymentAnswer.value.currency,
         stripeAccountId: form.stripeAccount.accountId,
         metadata: {
           submissionId,
-          fieldId: answer.id
+          fieldId: paymentAnswer.id
         }
       })
 
       await this.submissionService.updateAnswer(submissionId, {
-        ...answer,
+        ...paymentAnswer,
         value: {
-          ...answer.value,
+          ...paymentAnswer.value,
           clientSecret: result.clientSecret
         }
       })

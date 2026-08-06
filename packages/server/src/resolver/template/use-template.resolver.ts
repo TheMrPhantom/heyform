@@ -6,14 +6,17 @@ import { UseTemplateInput } from '@graphql'
 import { helper } from '@heyform-inc/utils'
 import { TeamModel, UserModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
-import { FormService } from '@service'
+import { FormService, TemplateService } from '@service'
 
 const DEFAULT_FORM_NAME = 'Untitled'
 
 @Resolver()
 @Auth()
 export class UseTemplateResolver {
-  constructor(private readonly formService: FormService) {}
+  constructor(
+    private readonly formService: FormService,
+    private readonly templateService: TemplateService
+  ) {}
 
   @Mutation(returns => String)
   @ProjectGuard()
@@ -22,7 +25,7 @@ export class UseTemplateResolver {
     @User() user: UserModel,
     @Args('input') input: UseTemplateInput
   ): Promise<string> {
-    const template = await this.formService.findById(input.templateId)
+    const template = await this.templateService.findPublishedById(input.templateId)
 
     if (helper.isEmpty(template)) {
       throw new BadRequestException('The template does not exist')

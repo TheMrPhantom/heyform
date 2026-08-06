@@ -296,6 +296,10 @@ export class AuthService {
     }
   }
 
+  async clearAttempts(key: string): Promise<void> {
+    await this.redisService.del(key)
+  }
+
   async getVerificationCode(
     key: string,
     length = 6,
@@ -367,7 +371,7 @@ export class AuthService {
   }
 
   async checkVerificationCode(key: string, code: string): Promise<void> {
-    const cache = await this.redisService.hget({
+    const cache = await this.redisService.hgetdel({
       key,
       field: code
     })

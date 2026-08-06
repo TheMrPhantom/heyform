@@ -4,6 +4,7 @@ import { Model } from 'mongoose'
 
 import { helper } from '@heyform-inc/utils'
 import { TemplateModel } from '@model'
+import { literalSearchRegex } from '@utils'
 
 @Injectable()
 export class TemplateService {
@@ -16,6 +17,13 @@ export class TemplateService {
     return this.templateModel.findById(id)
   }
 
+  async findPublishedById(id: string): Promise<TemplateModel | null> {
+    return this.templateModel.findOne({
+      _id: id,
+      published: true
+    })
+  }
+
   async findBySlug(slug: string): Promise<TemplateModel | null> {
     return this.templateModel.findOne({ slug })
   }
@@ -26,7 +34,7 @@ export class TemplateService {
     }
 
     if (keyword) {
-      conditions.name = new RegExp(keyword, 'i')
+      conditions.name = literalSearchRegex(keyword)
     }
 
     if (helper.isValid(limit) && limit! > 0) {

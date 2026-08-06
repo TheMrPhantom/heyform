@@ -6,7 +6,7 @@ import { EndpointAnonymousIdGuard } from '@guard'
 import { timestamp } from '@heyform-inc/utils'
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { FormAnalyticService, FormService } from '@service'
-import { aesEncryptObject } from '@utils'
+import { aesEncryptObject, assertFormIsAcceptingSubmissions } from '@utils'
 
 @Resolver()
 @UseGuards(EndpointAnonymousIdGuard)
@@ -31,6 +31,8 @@ export class OpenFormResolver {
     if (form.settings.active !== true) {
       throw new BadRequestException('The form does not active')
     }
+
+    assertFormIsAcceptingSubmissions(form.settings, timestamp())
 
     // Update form visit number
     await this.formAnalyticService.updateTotalVisits(form.id)

@@ -1,4 +1,5 @@
 import { BadRequestException, UseGuards } from '@nestjs/common'
+import { createHash } from 'crypto'
 
 import { GraphqlRequest, GraphqlResponse } from '@decorator'
 import { LoginInput } from '@graphql'
@@ -8,6 +9,16 @@ import { UserActivityKindEnum } from '@model'
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { AuthService, MailService, UserService } from '@service'
 import { ClientInfo, GqlClient, comparePassword } from '@utils'
+
+export function loginAttemptKey(
+  userId: string,
+  client: Pick<ClientInfo, 'ip' | 'deviceId'>
+): string {
+  const source = client.ip || client.deviceId
+  const sourceHash = createHash('sha256').update(String(source)).digest('hex').slice(0, 24)
+
+  return `limit:login:${userId}:${sourceHash}`
+}
 
 @Resolver()
 @UseGuards(DeviceIdGuard)
@@ -31,7 +42,7 @@ export class LoginResolver {
       throw new BadRequestException('Incorrect email or password.')
     }
 
-    const key = `limit:login:${user.id}`
+    const key = loginAttemptKey(user.id, client)
 
     await this.authService.attemptsCheck(key, async () => {
       if (helper.isEmpty(user.password)) {
@@ -44,6 +55,7 @@ export class LoginResolver {
         throw new BadRequestException('Incorrect email or password.')
       }
     })
+    await this.authService.clearAttempts(key)
 
     const devices = await this.authService.devices(user.id)
 

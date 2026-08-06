@@ -9,7 +9,7 @@ import { TeamService } from './team.service'
 import { GOOGLE_RECAPTCHA_KEY } from '@environments'
 import { helper, pickObject, timestamp } from '@heyform-inc/utils'
 import { FormModel } from '@model'
-import { mapToObject } from '@utils'
+import { literalSearchRegex, mapToObject } from '@utils'
 import { getUpdateQuery } from '@utils'
 
 interface UpdateFiledOptions {
@@ -81,7 +81,7 @@ export class FormService {
   async searchInTeam(teamId: string, projectIds: string[], keyword: string): Promise<FormModel[]> {
     const conditions: Record<string, any> = {
       teamId,
-      name: new RegExp(keyword, 'i')
+      name: literalSearchRegex(keyword)
     }
 
     if (helper.isValidArray(projectIds)) {
@@ -122,7 +122,7 @@ export class FormService {
     }
 
     if (keyword) {
-      conditions.name = new RegExp(keyword, 'i')
+      conditions.name = literalSearchRegex(keyword)
     }
 
     return this.formModel.find(conditions).sort({

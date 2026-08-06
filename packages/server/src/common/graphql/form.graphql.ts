@@ -30,8 +30,10 @@ import {
   IsNumber,
   IsObject,
   IsOptional,
+  IsString,
   IsUrl,
   Max,
+  MaxLength,
   Min
 } from 'class-validator'
 
@@ -303,6 +305,8 @@ export class FormsInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
   keyword?: string
 }
 
@@ -788,6 +792,8 @@ export class UpdateFormThemeInput extends FormDetailInput {
 @InputType()
 export class SearchFormInput {
   @Field()
+  @IsString()
+  @MaxLength(100)
   keyword: string
 }
 

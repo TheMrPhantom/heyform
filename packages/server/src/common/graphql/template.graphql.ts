@@ -1,5 +1,5 @@
 import { FormField, FormKindEnum, InteractiveModeEnum } from '@heyform-inc/shared-types-enums'
-import { IsOptional, Max } from 'class-validator'
+import { IsOptional, IsString, Max, MaxLength } from 'class-validator'
 
 import { FormFieldType, ThemeSettingsType } from './form.graphql'
 import { ProjectDetailInput } from './project.graphql'
@@ -9,6 +9,8 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql'
 export class TemplatesInput {
   @Field({ nullable: true })
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
   keyword?: string
 
   @Field({ nullable: true })
