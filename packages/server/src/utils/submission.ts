@@ -1,5 +1,6 @@
 import {
   ActionEnum,
+  FieldKindEnum,
   FormField,
   HiddenField,
   HiddenFieldAnswer,
@@ -35,6 +36,57 @@ export function selectSubmissionFields(
   }
 
   return fields.slice(0, terminalIndex + 1)
+}
+
+export function assertSafeSpecialFieldAnswers(
+  fields: FormField[],
+  values: Record<string, any>
+): void {
+  for (const field of fields) {
+    const value = values?.[field.id]
+
+    if (value === undefined || value === null) {
+      continue
+    }
+
+    let valid = true
+
+    switch (field.kind) {
+      case FieldKindEnum.LEGAL_TERMS:
+        valid =
+          typeof value === 'boolean' && (field.validations?.required !== true || value === true)
+        break
+
+      case FieldKindEnum.INPUT_TABLE:
+        valid =
+          Array.isArray(value) &&
+          value.every(row => row !== null && typeof row === 'object' && !Array.isArray(row))
+        break
+
+      case FieldKindEnum.SIGNATURE:
+        if (typeof value !== 'string') {
+          valid = false
+          break
+        }
+
+        try {
+          const url = new URL(value)
+          valid = url.protocol === 'http:' || url.protocol === 'https:'
+        } catch {
+          valid = false
+        }
+        break
+    }
+
+    if (!valid) {
+      throw new BadRequestException({
+        id: field.id,
+        kind: field.kind,
+        message: 'Invalid field value',
+        title: field.title
+      })
+    }
+  }
 }
 
 export function resolvePaymentConfiguration(

@@ -1,9 +1,11 @@
-import { Auth, Form, FormGuard } from '@decorator'
+import { Auth, Form, FormGuard, User } from '@decorator'
+import { BCRYPT_SALT } from '@environments'
 import { UpdateFormInput } from '@graphql'
 import { helper, pickValidValues } from '@heyform-inc/utils'
-import { FormModel } from '@model'
+import { FormModel, UserModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { FormService } from '@service'
+import { normalizeTranslationLanguages, passwordHash } from '@utils'
 
 @Resolver()
 @Auth()
@@ -14,6 +16,7 @@ export class UpdateFormResolver {
   @FormGuard()
   async updateForm(
     @Form() form: FormModel,
+    @User() user: UserModel,
     @Args('input') input: UpdateFormInput
   ): Promise<boolean> {
     let updates: Record<string, any> = pickValidValues(input as any, [
@@ -41,10 +44,13 @@ export class UpdateFormResolver {
       ['closedFormTitle', 'settings.closedFormTitle'],
       ['closedFormDescription', 'settings.closedFormDescription'],
       ['allowArchive', 'settings.allowArchive'],
-      ['password', 'settings.password'],
       ['requirePassword', 'settings.requirePassword'],
       ['enableEmailNotification', 'settings.enableEmailNotification']
     ])
+
+    if (helper.isValid(input.password)) {
+      updates['settings.password'] = await passwordHash(input.password!, BCRYPT_SALT)
+    }
 
     if (helper.isTrue(input.redirectOnCompletion)) {
       updates = {
@@ -65,14 +71,18 @@ export class UpdateFormResolver {
       helper.isArray(input.languages)
 
     if (hasLanguagesInput) {
-      updates['settings.languages'] = helper.isArray(input.languages) ? input.languages : []
+      updates['settings.languages'] = normalizeTranslationLanguages(input.languages)
     }
 
-    if (
-      helper.isValidArray(input.languages) &&
-      !input.languages.every(t => form.settings?.languages?.includes(t))
-    ) {
-      this.formService.addTranslateQueue(input.formId, input.languages!)
+    if (helper.isValidArray(input.languages)) {
+      const currentLanguages = new Set(form.settings?.languages || [])
+      const addedLanguages = normalizeTranslationLanguages(input.languages).filter(
+        language => !currentLanguages.has(language)
+      )
+
+      if (addedLanguages.length > 0) {
+        await this.formService.addTranslateQueue(input.formId, form.teamId, user.id, addedLanguages)
+      }
     }
 
     if (input.metaTitle || input.metaDescription || input.metaOGImageUrl) {

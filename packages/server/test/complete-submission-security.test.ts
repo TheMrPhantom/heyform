@@ -52,7 +52,7 @@ async function testPaymentUsesPublishedFormConfiguration() {
     verifySpam: async () => false
   }
   const submissionService = {
-    create: async (submission: Record<string, any>) => {
+    createWithinQuota: async (submission: Record<string, any>) => {
       storedSubmission = submission
       return 'submission_1'
     },
@@ -82,6 +82,7 @@ async function testPaymentUsesPublishedFormConfiguration() {
       lang: 'en',
       userAgent: {} as any
     },
+    'anonymous_1',
     {
       formId: 'form_1',
       answers: {

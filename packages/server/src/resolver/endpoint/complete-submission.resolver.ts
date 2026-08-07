@@ -6,7 +6,7 @@ import {
   SubmissionStatusEnum,
   Variable
 } from '@heyform-inc/shared-types-enums'
-import { BadRequestException, UseGuards } from '@nestjs/common'
+import { BadRequestException, Headers, UseGuards } from '@nestjs/common'
 
 import { CompleteSubmissionInput, CompleteSubmissionType } from '@graphql'
 import { EndpointAnonymousIdGuard } from '@guard'
@@ -26,6 +26,7 @@ import {
   ClientInfo,
   GqlClient,
   assertFormIsAcceptingSubmissions,
+  assertSafeSpecialFieldAnswers,
   normalizeSubmissionHiddenFields,
   resolvePaymentConfiguration,
   selectSubmissionFields
@@ -47,6 +48,7 @@ export class CompleteSubmissionResolver {
   @Mutation(returns => CompleteSubmissionType)
   async completeSubmission(
     @GqlClient() client: ClientInfo,
+    @Headers('x-anonymous-id') anonymousId: string,
     @Args('input') input: CompleteSubmissionInput
   ): Promise<CompleteSubmissionType> {
     const form = await this.formService.findById(input.formId)
@@ -71,20 +73,6 @@ export class CompleteSubmissionResolver {
     }
 
     if (
-      form.settings.enableQuotaLimit &&
-      helper.isValid(form.settings.quotaLimit) &&
-      form.settings.quotaLimit > 0
-    ) {
-      const count = await this.submissionService.countInForm(input.formId)
-
-      if (count >= form.settings.quotaLimit) {
-        throw new BadRequestException(
-          'The submission quota exceeds, new submissions are no longer accepted'
-        )
-      }
-    }
-
-    if (
       form.settings.enableIpLimit &&
       helper.isValid(form.settings.ipLimitCount) &&
       form.settings.ipLimitCount > 0
@@ -94,11 +82,14 @@ export class CompleteSubmissionResolver {
 
     // Check password
     if (form.settings.requirePassword) {
-      const { password } = this.endpointService.decryptToken(input.passwordToken)
-
-      if (password !== form.settings.password) {
-        throw new BadRequestException('The password does not match')
-      }
+      const passwordToken = this.endpointService.decryptToken(input.passwordToken)
+      this.endpointService.assertFormPasswordToken(
+        passwordToken,
+        form.id,
+        anonymousId,
+        form.settings.password!,
+        now
+      )
     }
 
     // Start submit time
@@ -122,8 +113,9 @@ export class CompleteSubmissionResolver {
     let variableValues: Record<string, any> = {}
 
     try {
+      const flattenedFields = flattenFields(form.fields, true)
       const logicResult = applyLogicToFields(
-        flattenFields(form.fields, true),
+        flattenedFields,
         form.logics,
         form.variables,
         input.answers
@@ -133,6 +125,7 @@ export class CompleteSubmissionResolver {
         form.logics,
         input.partialSubmission === true
       )
+      assertSafeSpecialFieldAnswers(fields, input.answers)
       variableValues = logicResult.variables
 
       answers = fieldValuesToAnswers(fields, input.answers)
@@ -185,20 +178,29 @@ export class CompleteSubmissionResolver {
 
     const paymentAnswer = paymentAnswers[0]
 
-    const submissionId = await this.submissionService.create({
-      teamId: form.teamId,
-      formId: form.id,
-      category,
-      title: form.name,
-      answers,
-      hiddenFields: normalizeSubmissionHiddenFields(form.hiddenFields, input.hiddenFields),
-      variables,
-      startAt,
-      endAt,
-      ip: client.ip,
-      userAgent: client.userAgent,
-      status
-    })
+    const quotaLimit =
+      form.settings.enableQuotaLimit &&
+      helper.isValid(form.settings.quotaLimit) &&
+      form.settings.quotaLimit! > 0
+        ? form.settings.quotaLimit
+        : undefined
+    const submissionId = await this.submissionService.createWithinQuota(
+      {
+        teamId: form.teamId,
+        formId: form.id,
+        category,
+        title: form.name,
+        answers,
+        hiddenFields: normalizeSubmissionHiddenFields(form.hiddenFields, input.hiddenFields),
+        variables,
+        startAt,
+        endAt,
+        ip: client.ip,
+        userAgent: client.userAgent,
+        status
+      },
+      quotaLimit
+    )
 
     // Payment
     const result: CompleteSubmissionType = {}

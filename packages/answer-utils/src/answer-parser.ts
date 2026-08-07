@@ -73,11 +73,11 @@ function dateRange(answer: Answer): string {
 function inputTable(answer: Answer): string {
   const columns = answer.properties?.tableColumns
 
-  if (helper.isValidArray(columns)) {
+  if (helper.isValidArray(columns) && helper.isArray(answer.value)) {
     const result: string[] = []
 
     answer.value.forEach((values: Record<string, string>) => {
-      if (helper.isValid(values)) {
+      if (helper.isPlainObject(values)) {
         const row = columns!.map(column => values[column.id]).join(', ')
         result.push(row)
       }

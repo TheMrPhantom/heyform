@@ -48,7 +48,12 @@ export class PublishFormResolver {
     }
 
     if (helper.isValidArray(form.settings?.languages)) {
-      this.formService.addTranslateQueue(input.formId, form.settings!.languages)
+      await this.formService.addTranslateQueue(
+        input.formId,
+        team.id,
+        user.id,
+        form.settings!.languages
+      )
     }
 
     if (!user.hasPublishedForm) {

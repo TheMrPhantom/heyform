@@ -120,7 +120,13 @@ export class ExportFileService {
         break
 
       default:
-        result = parsePlainAnswer(answer)
+        try {
+          result = parsePlainAnswer(answer)
+        } catch {
+          // Historical submissions may predate current validation. Treat a malformed answer as
+          // an empty cell so one poisoned record cannot make the entire form unexportable.
+          result = ''
+        }
         break
     }
 

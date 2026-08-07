@@ -7,10 +7,15 @@ import { ip } from '../src/utils/decorators/ip'
 import {
   OPEN_FORM_TOKEN_MAX_AGE_SECONDS,
   assertFormIsAcceptingSubmissions,
+  assertFormPasswordToken,
   assertOpenToken
 } from '../src/utils/endpoint'
 import { literalSearchRegex } from '../src/utils/search'
-import { resolvePaymentConfiguration, selectSubmissionFields } from '../src/utils/submission'
+import {
+  assertSafeSpecialFieldAnswers,
+  resolvePaymentConfiguration,
+  selectSubmissionFields
+} from '../src/utils/submission'
 
 async function testRecaptchaMustReturnStrictTrue() {
   const endpointService = new EndpointService()
@@ -77,6 +82,35 @@ function testFormAvailabilityAndOpenTokenExpiry() {
   )
 }
 
+function testFormPasswordTokensAreBoundAndExpire() {
+  const token = {
+    anonymousId: 'anonymous_1',
+    formId: 'form_1',
+    passwordHash: '$2b$10$current-hash',
+    timestamp: 100
+  }
+
+  assert.doesNotThrow(() =>
+    assertFormPasswordToken(token, 'form_1', 'anonymous_1', '$2b$10$current-hash', 110)
+  )
+  assert.throws(
+    () => assertFormPasswordToken(token, 'form_2', 'anonymous_1', token.passwordHash, 110),
+    /Invalid form password token/
+  )
+  assert.throws(
+    () => assertFormPasswordToken(token, 'form_1', 'anonymous_2', token.passwordHash, 110),
+    /Invalid form password token/
+  )
+  assert.throws(
+    () => assertFormPasswordToken(token, 'form_1', 'anonymous_1', 'changed-hash', 110),
+    /Invalid form password token/
+  )
+  assert.throws(
+    () => assertFormPasswordToken(token, 'form_1', 'anonymous_1', token.passwordHash, 86_501),
+    /Invalid form password token/
+  )
+}
+
 function testPartialSubmissionsAreSelectedFromServerLogic() {
   const fields = [
     { id: 'first', kind: FieldKindEnum.SHORT_TEXT },
@@ -131,6 +165,40 @@ function testPaymentConfigurationIsServerControlled() {
   )
 }
 
+function testSpecialFieldValuesFailClosedOnTheServer() {
+  const fields = [
+    { id: 'terms', kind: FieldKindEnum.LEGAL_TERMS, validations: { required: true } },
+    { id: 'table', kind: FieldKindEnum.INPUT_TABLE },
+    { id: 'signature', kind: FieldKindEnum.SIGNATURE }
+  ] as any
+
+  assert.throws(
+    () =>
+      assertSafeSpecialFieldAnswers(fields, {
+        terms: true,
+        table: 'not an array',
+        signature: 'https://cdn.example.com/signature.png'
+      }),
+    /Invalid field value/
+  )
+  assert.throws(
+    () =>
+      assertSafeSpecialFieldAnswers(fields, {
+        terms: false,
+        table: [],
+        signature: 'https://cdn.example.com/signature.png'
+      }),
+    /Invalid field value/
+  )
+  assert.doesNotThrow(() =>
+    assertSafeSpecialFieldAnswers(fields, {
+      terms: true,
+      table: [{ column_1: 'value' }],
+      signature: 'https://cdn.example.com/signature.png'
+    })
+  )
+}
+
 function testSearchIsLiteralAndIpUsesExpressTrustPolicy() {
   const regex = literalSearchRegex('form.*(secret)')
 
@@ -154,8 +222,10 @@ function testTrustProxyFailsClosedByDefault() {
 async function run() {
   await testRecaptchaMustReturnStrictTrue()
   testFormAvailabilityAndOpenTokenExpiry()
+  testFormPasswordTokensAreBoundAndExpire()
   testPartialSubmissionsAreSelectedFromServerLogic()
   testPaymentConfigurationIsServerControlled()
+  testSpecialFieldValuesFailClosedOnTheServer()
   testSearchIsLiteralAndIpUsesExpressTrustPolicy()
   testTrustProxyFailsClosedByDefault()
 }

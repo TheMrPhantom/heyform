@@ -23,6 +23,8 @@ import {
   Variable
 } from '@heyform-inc/shared-types-enums'
 import {
+  ArrayMaxSize,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -34,12 +36,14 @@ import {
   IsUrl,
   Max,
   MaxLength,
-  Min
+  Min,
+  MinLength
 } from 'class-validator'
 
 import { TeamDetailInput } from './team.graphql'
 import { FormAnalyticRangeEnum, FormModel, IntegrationStatusEnum } from '@model'
 import { Field, InputType, ObjectType } from '@nestjs/graphql'
+import { SUPPORTED_TRANSLATION_LANGUAGES } from '@utils'
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json'
 
 @InputType()
@@ -482,6 +486,8 @@ export class UpdateFormInput extends FormDetailInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  @MinLength(1)
+  @MaxLength(128)
   password?: string
 
   @Field({ nullable: true })
@@ -490,6 +496,10 @@ export class UpdateFormInput extends FormDetailInput {
 
   @Field(type => [String], { nullable: true })
   @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(SUPPORTED_TRANSLATION_LANGUAGES.length)
+  @ArrayUnique()
+  @IsIn(SUPPORTED_TRANSLATION_LANGUAGES, { each: true })
   languages?: string[]
 
   //

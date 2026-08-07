@@ -2,6 +2,7 @@ import { FormSettings } from '@heyform-inc/shared-types-enums'
 import { BadRequestException } from '@nestjs/common'
 
 export const OPEN_FORM_TOKEN_MAX_AGE_SECONDS = 24 * 60 * 60
+export const FORM_PASSWORD_TOKEN_MAX_AGE_SECONDS = 24 * 60 * 60
 
 export function assertFormIsAcceptingSubmissions(settings: FormSettings, now: number): void {
   if (!settings?.enableExpirationDate) {
@@ -44,4 +45,26 @@ export function assertOpenToken(
   }
 
   return openedAt
+}
+
+export function assertFormPasswordToken(
+  token: Record<string, any>,
+  formId: string,
+  anonymousId: string,
+  passwordHash: string,
+  now: number
+): void {
+  const issuedAt = token?.timestamp
+
+  if (
+    token?.formId !== formId ||
+    token?.anonymousId !== anonymousId ||
+    token?.passwordHash !== passwordHash ||
+    !Number.isSafeInteger(issuedAt) ||
+    issuedAt < 1 ||
+    issuedAt > now ||
+    now - issuedAt > FORM_PASSWORD_TOKEN_MAX_AGE_SECONDS
+  ) {
+    throw new BadRequestException('Invalid form password token')
+  }
 }

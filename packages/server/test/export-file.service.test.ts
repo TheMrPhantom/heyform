@@ -194,10 +194,43 @@ async function testNeutralizesSpreadsheetFormulas() {
   ])
 }
 
+async function testMalformedLegacyInputTableDoesNotBreakExport() {
+  const csv = await new ExportFileService().csv(
+    [
+      {
+        id: 'table',
+        kind: FieldKindEnum.INPUT_TABLE,
+        title: 'Table',
+        properties: { tableColumns: [{ id: 'column_1', label: 'Column' }] }
+      }
+    ],
+    [],
+    [
+      {
+        id: 'submission-1',
+        answers: [
+          {
+            id: 'table',
+            kind: FieldKindEnum.INPUT_TABLE,
+            title: 'Table',
+            properties: { tableColumns: [{ id: 'column_1', label: 'Column' }] },
+            value: 'malformed historical value'
+          }
+        ],
+        hiddenFields: []
+      } as any
+    ]
+  )
+
+  const [, row] = csv.split(/\r?\n/)
+  assert.deepStrictEqual(parseCsvRow(row), ['submission-1', '', '', ''])
+}
+
 async function run() {
   await testExportsRepeatedQuestionTitlesByFieldId()
   await testExportsLegacyFileUploadUrls()
   await testNeutralizesSpreadsheetFormulas()
+  await testMalformedLegacyInputTableDoesNotBreakExport()
 }
 
 if (require.main === module) {

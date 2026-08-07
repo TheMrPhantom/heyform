@@ -4,6 +4,7 @@ import * as crypto from 'crypto'
 import { helper } from '@heyform-inc/utils'
 
 const AES_KEY_SIZE = 32
+const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/
 
 function toB64Buffer(text: string): Buffer {
   return Buffer.from(text.replace(/\./g, '/'), 'base64')
@@ -79,6 +80,10 @@ export async function passwordHash(
 
 export async function comparePassword(plaintext: string, encrypted: string): Promise<boolean> {
   return bcrypt.compare(plaintext, encrypted)
+}
+
+export function isPasswordHash(value: unknown): value is string {
+  return typeof value === 'string' && BCRYPT_HASH_PATTERN.test(value)
 }
 
 export function aesEncryptObject(

@@ -548,16 +548,46 @@ function validateLength(value: AnswerValue, min?: number, max?: number): boolean
   return (max ? value.length <= max : true) && value.length >= (min || 0)
 }
 
-function validateLegalTerms(rule: FieldsToValidateRules, value: AnswerValue): boolean {
-  return (rule.required && helper.isTrue(value)) || false
+function validateLegalTerms(rule: FieldsToValidateRules, value: AnswerValue): void {
+  if (typeof value !== 'boolean' || (rule.required && value !== true)) {
+    throw new ValidateError({
+      id: rule.id,
+      kind: rule.kind,
+      title: rule.title,
+      message: 'This field must be accepted'
+    })
+  }
 }
 
-function validateInputTable(rule: FieldsToValidateRules, value: AnswerValue): boolean {
-  return (rule.required && helper.isValidArray(value)) || false
+function validateInputTable(rule: FieldsToValidateRules, value: AnswerValue): void {
+  if (!helper.isArray(value) || !value.every(row => helper.isPlainObject(row))) {
+    throw new ValidateError({
+      id: rule.id,
+      kind: rule.kind,
+      title: rule.title,
+      message: 'This field must contain valid table rows'
+    })
+  }
 }
 
-function validateSignature(rule: FieldsToValidateRules, value: AnswerValue): boolean {
-  return (
-    (rule.required && helper.isValid(value) && value.startsWith('data:image/png;base64,')) || false
-  )
+function validateSignature(rule: FieldsToValidateRules, value: AnswerValue): void {
+  let valid = helper.isString(value) && value.startsWith('data:image/png;base64,')
+
+  if (!valid && helper.isString(value)) {
+    try {
+      const url = new URL(value)
+      valid = url.protocol === 'http:' || url.protocol === 'https:'
+    } catch {
+      valid = false
+    }
+  }
+
+  if (!valid) {
+    throw new ValidateError({
+      id: rule.id,
+      kind: rule.kind,
+      title: rule.title,
+      message: 'This field must contain a valid signature'
+    })
+  }
 }

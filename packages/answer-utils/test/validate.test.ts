@@ -306,3 +306,48 @@ test('payment', () => {
   ).toBe(undefined)
   expect(validate(rules[0], undefined)).toBe(undefined)
 })
+
+test('legal terms rejects non-boolean and requires acceptance', () => {
+  const requiredRule = fieldsToValidateRules([
+    {
+      id: 'LEGAL_TERMS',
+      kind: FieldKindEnum.LEGAL_TERMS,
+      title: 'Terms',
+      validations: { required: true }
+    }
+  ])[0]
+
+  expect(() => validate(requiredRule, 'true')).toThrowError()
+  expect(() => validate(requiredRule, false)).toThrowError()
+  expect(validate(requiredRule, true)).toBe(undefined)
+})
+
+test('input table rejects values that can crash exporters', () => {
+  const rule = fieldsToValidateRules([
+    {
+      id: 'INPUT_TABLE',
+      kind: FieldKindEnum.INPUT_TABLE,
+      title: 'Table',
+      validations: { required: false }
+    }
+  ])[0]
+
+  expect(() => validate(rule, 'not an array')).toThrowError()
+  expect(() => validate(rule, ['not an object'])).toThrowError()
+  expect(validate(rule, [{ column_1: 'value' }])).toBe(undefined)
+})
+
+test('signature rejects arbitrary non-image values', () => {
+  const rule = fieldsToValidateRules([
+    {
+      id: 'SIGNATURE',
+      kind: FieldKindEnum.SIGNATURE,
+      title: 'Signature',
+      validations: { required: true }
+    }
+  ])[0]
+
+  expect(() => validate(rule, { url: 'https://example.com/signature.png' })).toThrowError()
+  expect(() => validate(rule, 'javascript:alert(1)')).toThrowError()
+  expect(validate(rule, 'https://cdn.example.com/signature.png')).toBe(undefined)
+})
