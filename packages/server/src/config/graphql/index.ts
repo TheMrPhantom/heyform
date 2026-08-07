@@ -1,8 +1,7 @@
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
 import { ApolloDriverConfig } from '@nestjs/apollo'
-import { Injectable } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 
-import { helper } from '@heyform-inc/utils'
 import { GqlOptionsFactory } from '@nestjs/graphql'
 import { lowerDirective, lowerDirectiveTransformer } from '@utils'
 
@@ -11,6 +10,66 @@ const CLIENT_SAFE_GRAPHQL_CODES = new Set([
   'GRAPHQL_PARSE_FAILED',
   'GRAPHQL_VALIDATION_FAILED'
 ])
+
+interface ClientSafeHttpError {
+  code: string
+  message: string
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : undefined
+}
+
+function firstMessage(value: unknown): string | undefined {
+  if (typeof value === 'string' && value.length > 0) {
+    return value
+  }
+
+  if (Array.isArray(value)) {
+    return value.find(row => typeof row === 'string' && row.length > 0)
+  }
+}
+
+function clientSafeHttpError(value: unknown): ClientSafeHttpError | undefined {
+  const originalError = asRecord(value)
+
+  if (!originalError) {
+    return
+  }
+
+  const nestedResponse = asRecord(originalError.response)
+  const response = nestedResponse || originalError
+  const statusCode = Number(response.statusCode ?? originalError.status)
+
+  if (!Number.isInteger(statusCode) || statusCode < 400 || statusCode >= 500) {
+    return
+  }
+
+  const message = firstMessage(
+    nestedResponse
+      ? nestedResponse.message
+      : typeof originalError.response === 'string'
+        ? originalError.response
+        : originalError.message
+  )
+
+  if (!message) {
+    return
+  }
+
+  const explicitCode = response.code
+  const errorName = response.error
+  const code =
+    typeof explicitCode === 'string' && explicitCode.length > 0
+      ? explicitCode
+      : typeof errorName === 'string' && errorName.length > 0
+        ? errorName.replace(/\s+/g, '_').toUpperCase()
+        : HttpStatus[statusCode] || 'BAD_USER_INPUT'
+
+  return { code, message }
+}
 
 @Injectable()
 export class GraphqlService implements GqlOptionsFactory<ApolloDriverConfig> {
@@ -27,27 +86,13 @@ export class GraphqlService implements GqlOptionsFactory<ApolloDriverConfig> {
       plugins: [ApolloServerPluginLandingPageDisabled()],
       transformSchema: schema => lowerDirectiveTransformer(schema),
       formatError: e => {
-        const originalError =
-          e.extensions?.originalError && typeof e.extensions.originalError === 'object'
-            ? (e.extensions.originalError as Record<string, any>)
-            : undefined
-        const response =
-          originalError && 'response' in originalError
-            ? (originalError as { response?: any }).response
-            : undefined
+        const safeHttpError = clientSafeHttpError(e.extensions?.originalError)
         let code = e.extensions?.code
         let message = 'Internal server error'
 
-        if (helper.isValid(response)) {
-          if (helper.isValid(response.code)) {
-            code = response.code
-          } else if (helper.isValid(response.error)) {
-            code = response.error.replace(/\s+/g, '_').toUpperCase()
-          }
-
-          if (helper.isValid(response.message)) {
-            message = helper.isArray(response.message) ? response.message[0] : response.message
-          }
+        if (safeHttpError) {
+          code = safeHttpError.code
+          message = safeHttpError.message
         } else if (code && CLIENT_SAFE_GRAPHQL_CODES.has(String(code))) {
           message = e.message
         } else {

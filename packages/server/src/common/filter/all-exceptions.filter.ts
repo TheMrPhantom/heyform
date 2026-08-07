@@ -17,8 +17,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost): any {
     this.logger.error(exception, (exception as any).stack)
 
+    const status = exception instanceof HttpException ? exception.getStatus() : 500
     const httpException =
-      exception instanceof HttpException
+      exception instanceof HttpException && status >= 400 && status < 500
         ? exception
         : new InternalServerErrorException('Internal server error')
 
