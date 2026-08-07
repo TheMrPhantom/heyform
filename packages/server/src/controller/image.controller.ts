@@ -13,7 +13,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 async function fetchRemoteImage(
-  url: string,
+  url: URL,
   lookup: SafeOutboundRequest['lookup']
 ): Promise<{ body: Buffer; headers: IncomingHttpHeaders }> {
   const request = got.stream(url, {
@@ -66,7 +66,7 @@ export class ImageController {
     let result: { body: Buffer; headers: IncomingHttpHeaders }
 
     try {
-      result = await fetchRemoteImage(url.toString(), lookup)
+      result = await fetchRemoteImage(url, lookup)
     } catch (error: unknown) {
       this.logger.warn(
         `Failed to fetch image from "${input.url}": ${getErrorMessage(error, 'Unknown got error')}`
