@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRedis } from '@svtslv/nestjs-ioredis'
+import { randomUUID } from 'crypto'
 import { Redis } from 'ioredis'
 
 import { hs } from '@heyform-inc/utils'
@@ -26,11 +27,25 @@ interface HdelOptions extends BaseOptions {
 }
 
 const RATE_LIMIT_SCRIPT = `
-local count = redis.call('INCR', KEYS[1])
-if count == 1 then
+local count = redis.call('INCRBY', KEYS[1], ARGV[2])
+if count == tonumber(ARGV[2]) then
   redis.call('EXPIRE', KEYS[1], ARGV[1])
 end
 return {count, redis.call('TTL', KEYS[1])}
+`
+
+const RELEASE_LOCK_SCRIPT = `
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0
+`
+
+const EXTEND_LOCK_SCRIPT = `
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('EXPIRE', KEYS[1], ARGV[2])
+end
+return 0
 `
 
 @Injectable()
@@ -47,23 +62,102 @@ export class RedisService {
     return parseInt(result, defaultValue)
   }
 
-  public async throttler(key: string, limit: number, ttl: string) {
+  public async incrementWithExpiry(key: string, ttl: string, amount = 1): Promise<number> {
     const duration = hs(ttl)
 
-    if (!duration) {
+    if (!duration || !Number.isSafeInteger(amount) || amount < 1) {
       throw new Error(`Invalid rate limit duration: ${ttl}`)
     }
 
-    const [count, timeLeft] = (await this.redis.eval(RATE_LIMIT_SCRIPT, 1, key, duration)) as [
+    const [count] = (await this.redis.eval(RATE_LIMIT_SCRIPT, 1, key, duration, amount)) as [
       number,
       number
     ]
+
+    return count
+  }
+
+  public async throttler(key: string, limit: number, ttl: string, amount = 1) {
+    const duration = hs(ttl)
+
+    if (!duration || !Number.isSafeInteger(amount) || amount < 1) {
+      throw new Error(`Invalid rate limit options for duration: ${ttl}`)
+    }
+
+    const [count, timeLeft] = (await this.redis.eval(
+      RATE_LIMIT_SCRIPT,
+      1,
+      key,
+      duration,
+      amount
+    )) as [number, number]
 
     if (count > limit) {
       throw new HttpException(
         `Too many requests. Please try again in ${Math.max(timeLeft, 0)} seconds.`,
         HttpStatus.TOO_MANY_REQUESTS
       )
+    }
+  }
+
+  public async withLock<T>(
+    key: string,
+    ttl: string,
+    callback: () => Promise<T>,
+    retries = 40,
+    retryDelayMs = 50
+  ): Promise<T> {
+    const duration = hs(ttl)
+
+    if (!duration) {
+      throw new Error(`Invalid lock duration: ${ttl}`)
+    }
+
+    const token = randomUUID()
+    let acquired = false
+
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      acquired = (await this.redis.set(key, token, 'EX', duration, 'NX')) === 'OK'
+
+      if (acquired) {
+        break
+      }
+
+      if (attempt < retries) {
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs))
+      }
+    }
+
+    if (!acquired) {
+      throw new HttpException(
+        'The requested resource is busy. Please try again.',
+        HttpStatus.TOO_MANY_REQUESTS
+      )
+    }
+
+    const renewalIntervalMs = Math.max(100, Math.floor((duration * 1_000) / 3))
+    let renewalPromise = Promise.resolve()
+    let stopped = false
+    const renewalTimer = setInterval(() => {
+      renewalPromise = renewalPromise
+        .then(async () => {
+          if (!stopped) {
+            await this.redis.eval(EXTEND_LOCK_SCRIPT, 1, key, token, duration)
+          }
+        })
+        // A transient renewal error must not become an unhandled rejection. The owned-release
+        // script below still prevents this holder from deleting a newer holder's lock.
+        .catch(() => undefined)
+    }, renewalIntervalMs)
+    renewalTimer.unref?.()
+
+    try {
+      return await callback()
+    } finally {
+      stopped = true
+      clearInterval(renewalTimer)
+      await renewalPromise
+      await this.redis.eval(RELEASE_LOCK_SCRIPT, 1, key, token)
     }
   }
 
