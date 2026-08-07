@@ -57,7 +57,7 @@ export class LRU {
   constructor(options: LRUOptions) {
     this.bucket = options.bucket || 'HEYFORM_BUCKET'
     this.capacity = options.capacity || 10
-    this.expires = options.expires || hs('7d')!
+    this.expires = options.expires || hs('1h')!
     this.store = options.store || new LRUMemoryStore()
 
     // Initial cache value
