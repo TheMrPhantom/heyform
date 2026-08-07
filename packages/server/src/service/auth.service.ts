@@ -278,22 +278,15 @@ export class AuthService {
       ...customOptions
     }
 
-    const cache = await this.redisService.get(key)
-    const remaining = options.max - parseNumber(cache, 0)
+    // Reserve the attempt before checking the credential. The Redis operation is atomic, so a
+    // concurrent burst cannot have every request observe the same stale counter value.
+    const count = await this.redisService.incrementWithExpiry(key, options.expire)
 
-    if (remaining < 1) {
+    if (count > options.max) {
       throw new ForbiddenException('Limit exceeded. Please try again later.')
     }
 
-    try {
-      await checkFunc()
-    } catch (err: unknown) {
-      await this.redisService.multi([
-        ['incr', key],
-        ['expire', key, String(hs(options.expire))]
-      ])
-      throw err
-    }
+    await checkFunc()
   }
 
   async clearAttempts(key: string): Promise<void> {

@@ -36,6 +36,32 @@ async function testVerificationCodesAreConsumedAtomically() {
   assert.strictEqual(hgetdelCalls, 2)
 }
 
+async function testConcurrentAttemptsReserveSlotsBeforeCredentialChecks() {
+  let count = 0
+  let checks = 0
+  const service = new AuthService(
+    {} as any,
+    {
+      incrementWithExpiry: async () => {
+        count += 1
+        return count
+      }
+    } as any
+  )
+
+  const results = await Promise.allSettled(
+    Array.from({ length: 20 }, () =>
+      service.attemptsCheck('limit:login:user_1', async () => {
+        checks += 1
+        throw new Error('bad credential')
+      })
+    )
+  )
+
+  assert.strictEqual(checks, 5)
+  assert.strictEqual(results.filter(result => result.status === 'rejected').length, 20)
+}
+
 async function testLoginAttemptsAreScopedToTrustedSourceAndClearedOnSuccess() {
   const first = loginAttemptKey('user_1', { ip: '203.0.113.10', deviceId: 'device_1' } as any)
   const second = loginAttemptKey('user_1', { ip: '203.0.113.11', deviceId: 'device_1' } as any)
@@ -114,6 +140,7 @@ async function testResetEmailDoesNotRevealWhetherAccountExists() {
 
 async function run() {
   await testVerificationCodesAreConsumedAtomically()
+  await testConcurrentAttemptsReserveSlotsBeforeCredentialChecks()
   await testLoginAttemptsAreScopedToTrustedSourceAndClearedOnSuccess()
   await testResetEmailDoesNotRevealWhetherAccountExists()
 }
