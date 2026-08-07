@@ -38,6 +38,7 @@ limit enforcement, server-derived partial submissions, and declared-hidden-field
 | `GHSA-mv7c-xj63-2mj9` | Allowlist, cap, normalize, and deduplicate languages; queue only newly added translations; apply weighted per-user and per-team hourly quotas; and use retry-safe deterministic queue job IDs.                                                                     |
 | `GHSA-6frh-3cxm-9qcj` | Make special-field validators fail closed, validate production submissions before the packaged parser runs, guard table parsing, and skip malformed historical answers instead of aborting an entire export.                                                       |
 | `GHSA-p5gh-7839-pj2g` | Accept signature URLs only from the configured application and S3 origins, retain legacy PNG data URIs, and proxy dashboard signature rendering so historical attacker-controlled URLs are never fetched by an owner's browser.                                    |
+| `GHSA-3h48-xfjq-92rr` | Resolve edited answers from the server-owned form schema, validate values through the production submission validators, ignore caller-supplied kinds/properties, and render historical unsafe URL schemes as inert text.                                           |
 
 ## Previously landed advisory controls rechecked
 

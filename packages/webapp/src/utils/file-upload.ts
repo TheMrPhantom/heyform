@@ -5,7 +5,7 @@ interface FileUploadDisplayValue {
   url: string
 }
 
-function isHttpUrl(value: string): boolean {
+export function isHttpUrl(value: string): boolean {
   try {
     return ['http:', 'https:'].includes(new URL(value).protocol)
   } catch {

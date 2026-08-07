@@ -4,7 +4,7 @@ import Big from 'big.js'
 import { FC, Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { cn, formatDay, getFileUploadValue, unixDate } from '@/utils'
+import { cn, formatDay, getFileUploadValue, isHttpUrl, unixDate } from '@/utils'
 import { CURRENCY_SYMBOLS, htmlUtils } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
@@ -348,7 +348,7 @@ const URLItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) => {
     return null
   }
 
-  if (isTableCell) {
+  if (isTableCell || !isHttpUrl(answer.value)) {
     return <div className="truncate">{answer.value}</div>
   }
 

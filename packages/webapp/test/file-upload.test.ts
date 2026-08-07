@@ -1,6 +1,6 @@
 import * as assert from 'assert'
 
-import { getFileUploadValue } from '../src/utils/file-upload'
+import { getFileUploadValue, isHttpUrl } from '../src/utils/file-upload'
 
 function testNormalizesCurrentAndLegacyFileValues() {
   assert.deepStrictEqual(getFileUploadValue('https://forms.example.com/static/upload/file-id'), {
@@ -42,6 +42,11 @@ function testNormalizesCurrentAndLegacyFileValues() {
 }
 
 function testSupportsSelfHostedUrlsAndRejectsUnsafeProtocols() {
+  assert.strictEqual(isHttpUrl('https://forms.example.com/path'), true)
+  assert.strictEqual(isHttpUrl('http://forms.example.com/path'), true)
+  assert.strictEqual(isHttpUrl('javascript:alert(1)'), false)
+  assert.strictEqual(isHttpUrl('data:text/html,payload'), false)
+
   assert.deepStrictEqual(
     getFileUploadValue({
       filename: 'local.txt',

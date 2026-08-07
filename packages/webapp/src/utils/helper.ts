@@ -6,7 +6,7 @@ import { helper } from '@heyform-inc/utils'
 
 import { STRIPE_PUBLISHABLE_KEY } from '@/consts'
 
-export { getFileUploadValue, urlBuilder } from './file-upload'
+export { getFileUploadValue, isHttpUrl, urlBuilder } from './file-upload'
 
 const LOADED_SCRIPTS = new Set<string>()
 
