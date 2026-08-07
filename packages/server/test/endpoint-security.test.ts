@@ -1,7 +1,7 @@
 import { ActionEnum, CaptchaKindEnum, FieldKindEnum, Logic } from '@heyform-inc/shared-types-enums'
 import * as assert from 'assert'
 
-import { parseTrustProxy } from '../src/environments'
+import { APP_HOMEPAGE_URL, parseTrustProxy } from '../src/environments'
 import { EndpointService } from '../src/service/endpoint.service'
 import { ip } from '../src/utils/decorators/ip'
 import {
@@ -13,6 +13,7 @@ import {
 import { literalSearchRegex } from '../src/utils/search'
 import {
   assertSafeSpecialFieldAnswers,
+  isTrustedSignatureUrl,
   resolvePaymentConfiguration,
   selectSubmissionFields
 } from '../src/utils/submission'
@@ -194,8 +195,39 @@ function testSpecialFieldValuesFailClosedOnTheServer() {
     assertSafeSpecialFieldAnswers(fields, {
       terms: true,
       table: [{ column_1: 'value' }],
-      signature: 'https://cdn.example.com/signature.png'
+      signature: `${APP_HOMEPAGE_URL}/upload/form_1/signature.png`
     })
+  )
+
+  assert.throws(
+    () =>
+      assertSafeSpecialFieldAnswers([{ id: 'signature', kind: FieldKindEnum.SIGNATURE }] as any, {
+        signature: 'http://192.0.2.1:9999/tracker.gif?evil=1'
+      }),
+    /Invalid field value/
+  )
+  assert.doesNotThrow(() =>
+    assertSafeSpecialFieldAnswers([{ id: 'signature', kind: FieldKindEnum.SIGNATURE }] as any, {
+      signature: 'data:image/png;base64,c2lnbmF0dXJl'
+    })
+  )
+
+  const s3Origins = ['https://uploads.example.com/storage']
+
+  assert.strictEqual(
+    isTrustedSignatureUrl('https://uploads.example.com/signatures/sig.png', s3Origins),
+    true
+  )
+  assert.strictEqual(
+    isTrustedSignatureUrl(
+      'https://uploads.example.com.attacker.test/signatures/sig.png',
+      s3Origins
+    ),
+    false
+  )
+  assert.strictEqual(
+    isTrustedSignatureUrl('http://uploads.example.com/signatures/sig.png', s3Origins),
+    false
   )
 }
 

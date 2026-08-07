@@ -329,7 +329,7 @@ const SignatureItem: FC<SubmissionCellProps> = ({ answer, field }) => {
     return null
   }
 
-  return <Image src={answer.value} width={80} height={40} />
+  return <Image src={answer.value} width={80} height={40} resize={{ width: 80, height: 40 }} />
 }
 
 const TextItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) => {

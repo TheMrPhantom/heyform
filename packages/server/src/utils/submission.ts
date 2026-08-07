@@ -9,6 +9,38 @@ import {
 } from '@heyform-inc/shared-types-enums'
 import { BadRequestException } from '@nestjs/common'
 
+import { APP_HOMEPAGE_URL, S3_PUBLIC_URL } from '@environments'
+
+import { isAllowedUrlOrigin } from './outbound-url'
+
+export const TRUSTED_SIGNATURE_ORIGINS = [APP_HOMEPAGE_URL, S3_PUBLIC_URL].filter(
+  (origin): origin is string => typeof origin === 'string' && origin.length > 0
+)
+
+export function isTrustedSignatureUrl(
+  value: unknown,
+  allowedOrigins: string[] = TRUSTED_SIGNATURE_ORIGINS
+): value is string {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  if (value.startsWith('data:image/png;base64,')) {
+    return true
+  }
+
+  try {
+    const url = new URL(value)
+
+    return (
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      isAllowedUrlOrigin(url, allowedOrigins)
+    )
+  } catch {
+    return false
+  }
+}
+
 interface EvaluatedFormField extends FormField {
   isTouched?: boolean
 }
@@ -64,17 +96,7 @@ export function assertSafeSpecialFieldAnswers(
         break
 
       case FieldKindEnum.SIGNATURE:
-        if (typeof value !== 'string') {
-          valid = false
-          break
-        }
-
-        try {
-          const url = new URL(value)
-          valid = url.protocol === 'http:' || url.protocol === 'https:'
-        } catch {
-          valid = false
-        }
+        valid = isTrustedSignatureUrl(value)
         break
     }
 
