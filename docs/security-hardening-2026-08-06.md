@@ -24,6 +24,20 @@ limits and raster re-encoding, webhook time/response limits, literal bounded sea
 single-use verification codes, login/reset throttling and enumeration resistance, form open/time
 limit enforcement, server-derived partial submissions, and declared-hidden-field normalization.
 
+## Follow-up advisories addressed (2026-08-07)
+
+| Advisory              | Control                                                                                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GHSA-j96p-939m-w769` | Atomically reserve each credential/code attempt in Redis before performing the check, so a concurrent burst cannot exceed the configured attempt cap.                                                                                                              |
+| `GHSA-3rc6-92q4-wm54` | Cap and deduplicate invitation recipients, add request throttling, apply weighted per-user and per-team hourly recipient quotas, and await mail enqueueing.                                                                                                        |
+| `GHSA-mg97-68f8-7g35` | Correctly distinguish HTTP from GraphQL in the global exception filter so rejected uploads always receive a bounded HTTP error response.                                                                                                                           |
+| `GHSA-wfh3-r7x7-q4x4` | Disable renderer autosave by default and in the hosted web app, purge the legacy localStorage bucket, and use opt-in sessionStorage with a one-hour expiry for consumers that explicitly enable it.                                                                |
+| `GHSA-35mg-x82v-23mc` | Return generic messages for unexpected GraphQL and REST exceptions while preserving deliberate client-facing HTTP errors and server-side logging.                                                                                                                  |
+| `GHSA-2crf-q7gp-c38w` | Serialize the authoritative MongoDB quota count and submission insert with a distributed per-form Redis lock, preventing concurrent submissions from exceeding the configured cap without introducing a drifting shadow count.                                     |
+| `GHSA-h5hf-28ww-qpcp` | Hash form passwords with bcrypt, lazily migrate legacy plaintext values after successful verification, bind short-lived password tokens to the form/respondent/current hash, hide hashes from GraphQL, and disable/redact Mongo query logging outside development. |
+| `GHSA-mv7c-xj63-2mj9` | Allowlist, cap, normalize, and deduplicate languages; queue only newly added translations; apply weighted per-user and per-team hourly quotas; and use retry-safe deterministic queue job IDs.                                                                     |
+| `GHSA-6frh-3cxm-9qcj` | Make special-field validators fail closed, validate production submissions before the packaged parser runs, guard table parsing, and skip malformed historical answers instead of aborting an entire export.                                                       |
+
 ## Previously landed advisory controls rechecked
 
 The current branch already contains controls for the earlier published advisories:
@@ -56,8 +70,8 @@ The current branch already contains controls for the earlier published advisorie
    reachable from untrusted clients.
 4. Configure `CORS_ALLOWED_ORIGINS` with exact dashboard origins; never use a wildcard with
    credentialed requests.
-5. Keep Redis available. Distributed upload, AI, authentication, and verification-code controls
-   depend on atomic Redis operations.
+5. Keep Redis available. Distributed upload, AI/translation, invitation, authentication,
+   verification-code, and submission-quota controls depend on atomic Redis operations.
 6. Existing S3 objects retain the metadata and ACL they were uploaded with. Rewrite their
    `Content-Type`/`Content-Disposition` metadata or delete untrusted historical objects as part of
    deployment. New objects receive generated keys and safe response metadata, but remain
