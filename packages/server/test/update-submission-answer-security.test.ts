@@ -38,6 +38,16 @@ const form = {
       id: 'signature_1',
       kind: FieldKindEnum.SIGNATURE,
       title: 'Signature'
+    },
+    {
+      id: 'file_1',
+      kind: FieldKindEnum.FILE_UPLOAD,
+      title: 'Attachment'
+    },
+    {
+      id: 'payment_1',
+      kind: FieldKindEnum.PAYMENT,
+      title: 'Payment'
     }
   ]
 } as any
@@ -117,6 +127,38 @@ async function testRejectsUnknownAndUnsafeSpecialFields() {
         answer: {
           id: 'signature_1',
           value: 'https://attacker.example/tracker.gif'
+        },
+        formId: 'form_1',
+        submissionId: 'submission_1'
+      }),
+    /Invalid field value/
+  )
+  await assert.rejects(
+    () =>
+      resolver.updateSubmissionAnswer(form, {
+        answer: {
+          id: 'file_1',
+          value: {
+            filename: 'Signed_Contract.pdf',
+            url: 'https://attacker.example/phish'
+          }
+        },
+        formId: 'form_1',
+        submissionId: 'submission_1'
+      }),
+    /Invalid field value/
+  )
+  await assert.rejects(
+    () =>
+      resolver.updateSubmissionAnswer(form, {
+        answer: {
+          id: 'payment_1',
+          value: {
+            amount: 100,
+            currency: 'usd',
+            paymentIntentId: 'pi_fake',
+            receiptUrl: 'javascript:alert(document.domain)'
+          }
         },
         formId: 'form_1',
         submissionId: 'submission_1'

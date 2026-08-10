@@ -13,7 +13,9 @@ import {
 import { literalSearchRegex } from '../src/utils/search'
 import {
   assertSafeSpecialFieldAnswers,
+  isTrustedFileUploadAnswer,
   isTrustedSignatureUrl,
+  isTrustedStripeReceiptUrl,
   resolvePaymentConfiguration,
   selectSubmissionFields
 } from '../src/utils/submission'
@@ -170,7 +172,9 @@ function testSpecialFieldValuesFailClosedOnTheServer() {
   const fields = [
     { id: 'terms', kind: FieldKindEnum.LEGAL_TERMS, validations: { required: true } },
     { id: 'table', kind: FieldKindEnum.INPUT_TABLE },
-    { id: 'signature', kind: FieldKindEnum.SIGNATURE }
+    { id: 'signature', kind: FieldKindEnum.SIGNATURE },
+    { id: 'file', kind: FieldKindEnum.FILE_UPLOAD },
+    { id: 'payment', kind: FieldKindEnum.PAYMENT }
   ] as any
 
   assert.throws(
@@ -178,7 +182,9 @@ function testSpecialFieldValuesFailClosedOnTheServer() {
       assertSafeSpecialFieldAnswers(fields, {
         terms: true,
         table: 'not an array',
-        signature: 'https://cdn.example.com/signature.png'
+        signature: 'https://cdn.example.com/signature.png',
+        file: `${APP_HOMEPAGE_URL}/static/upload/file-id`,
+        payment: { amount: 100, currency: 'usd' }
       }),
     /Invalid field value/
   )
@@ -187,7 +193,9 @@ function testSpecialFieldValuesFailClosedOnTheServer() {
       assertSafeSpecialFieldAnswers(fields, {
         terms: false,
         table: [],
-        signature: 'https://cdn.example.com/signature.png'
+        signature: 'https://cdn.example.com/signature.png',
+        file: `${APP_HOMEPAGE_URL}/static/upload/file-id`,
+        payment: { amount: 100, currency: 'usd' }
       }),
     /Invalid field value/
   )
@@ -195,7 +203,17 @@ function testSpecialFieldValuesFailClosedOnTheServer() {
     assertSafeSpecialFieldAnswers(fields, {
       terms: true,
       table: [{ column_1: 'value' }],
-      signature: `${APP_HOMEPAGE_URL}/upload/form_1/signature.png`
+      signature: `${APP_HOMEPAGE_URL}/upload/form_1/signature.png`,
+      file: {
+        filename: 'report.pdf',
+        url: `${APP_HOMEPAGE_URL}/static/upload/file-id`
+      },
+      payment: {
+        amount: 100,
+        currency: 'usd',
+        paymentIntentId: 'pi_123',
+        receiptUrl: 'https://pay.stripe.com/receipts/payment/abc'
+      }
     })
   )
 
@@ -227,6 +245,48 @@ function testSpecialFieldValuesFailClosedOnTheServer() {
   )
   assert.strictEqual(
     isTrustedSignatureUrl('http://uploads.example.com/signatures/sig.png', s3Origins),
+    false
+  )
+
+  assert.strictEqual(
+    isTrustedFileUploadAnswer(
+      { filename: 'report.pdf', url: 'https://uploads.example.com/files/file-id' },
+      s3Origins
+    ),
+    true
+  )
+  assert.strictEqual(
+    isTrustedFileUploadAnswer(
+      {
+        filename: 'report.pdf',
+        urlPrefix: 'https://uploads.example.com/files',
+        key: 'file-id'
+      },
+      s3Origins
+    ),
+    true
+  )
+  assert.strictEqual(
+    isTrustedFileUploadAnswer(
+      { filename: 'Signed_Contract.pdf', url: 'https://attacker.example/phish' },
+      s3Origins
+    ),
+    false
+  )
+  assert.strictEqual(
+    isTrustedFileUploadAnswer(
+      { filename: 'report.pdf', url: 'https://uploads.example.com.attacker.test/file-id' },
+      s3Origins
+    ),
+    false
+  )
+
+  assert.strictEqual(isTrustedStripeReceiptUrl(undefined), true)
+  assert.strictEqual(isTrustedStripeReceiptUrl('https://pay.stripe.com/receipts/payment/abc'), true)
+  assert.strictEqual(isTrustedStripeReceiptUrl('javascript:alert(document.domain)'), false)
+  assert.strictEqual(isTrustedStripeReceiptUrl('http://pay.stripe.com/receipts/payment/abc'), false)
+  assert.strictEqual(
+    isTrustedStripeReceiptUrl('https://pay.stripe.com.attacker.test/receipts/payment/abc'),
     false
   )
 }

@@ -13,6 +13,47 @@ export function isHttpUrl(value: string): boolean {
   }
 }
 
+export function isAllowedUrlOrigin(
+  value: string,
+  allowedOrigins: string[],
+  baseUrl?: string
+): boolean {
+  try {
+    const url = new URL(value, baseUrl)
+
+    return allowedOrigins.some(origin => {
+      try {
+        return url.origin === new URL(origin).origin
+      } catch {
+        return false
+      }
+    })
+  } catch {
+    return false
+  }
+}
+
+export function isTrustedStripeReceiptUrl(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  try {
+    const url = new URL(value)
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, '')
+
+    return (
+      url.protocol === 'https:' &&
+      url.port === '' &&
+      url.username === '' &&
+      url.password === '' &&
+      (hostname === 'stripe.com' || hostname.endsWith('.stripe.com'))
+    )
+  } catch {
+    return false
+  }
+}
+
 export function urlBuilder(prefix: string, query: Record<string, unknown>): string {
   const hashIndex = prefix.indexOf('#')
   const url = hashIndex < 0 ? prefix : prefix.slice(0, hashIndex)
@@ -22,7 +63,11 @@ export function urlBuilder(prefix: string, query: Record<string, unknown>): stri
   return url + separator + qs.stringify(removeObjectNil(query), { encode: true }) + hash
 }
 
-export function getFileUploadValue(value: unknown): FileUploadDisplayValue | undefined {
+export function getFileUploadValue(
+  value: unknown,
+  allowedOrigins?: string[],
+  baseUrl?: string
+): FileUploadDisplayValue | undefined {
   let filename = 'Attachment'
   let url: string | undefined
 
@@ -51,7 +96,10 @@ export function getFileUploadValue(value: unknown): FileUploadDisplayValue | und
     return
   }
 
-  if (isHttpUrl(url) || /^\/{1,2}[^/]/.test(url)) {
+  if (
+    (isHttpUrl(url) || /^\/{1,2}[^/]/.test(url)) &&
+    (!allowedOrigins || isAllowedUrlOrigin(url, allowedOrigins, baseUrl))
+  ) {
     return {
       filename,
       url: urlBuilder(url, {

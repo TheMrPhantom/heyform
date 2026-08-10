@@ -1,6 +1,11 @@
 import * as assert from 'assert'
 
-import { getFileUploadValue, isHttpUrl } from '../src/utils/file-upload'
+import {
+  getFileUploadValue,
+  isAllowedUrlOrigin,
+  isHttpUrl,
+  isTrustedStripeReceiptUrl
+} from '../src/utils/file-upload'
 
 function testNormalizesCurrentAndLegacyFileValues() {
   assert.deepStrictEqual(getFileUploadValue('https://forms.example.com/static/upload/file-id'), {
@@ -65,9 +70,54 @@ function testSupportsSelfHostedUrlsAndRejectsUnsafeProtocols() {
   assert.strictEqual(getFileUploadValue('javascript:alert(1)'), undefined)
 }
 
+function testDashboardOnlyLinksToTrustedUploadOrigins() {
+  const allowedOrigins = ['https://forms.example.com', 'https://uploads.example.com/storage']
+
+  assert.deepStrictEqual(
+    getFileUploadValue(
+      { filename: 'report.pdf', url: 'https://uploads.example.com/file-id' },
+      allowedOrigins
+    ),
+    {
+      filename: 'report.pdf',
+      url: 'https://uploads.example.com/file-id?attname=report.pdf'
+    }
+  )
+  assert.strictEqual(
+    getFileUploadValue(
+      { filename: 'Signed_Contract.pdf', url: 'https://attacker.example/phish' },
+      allowedOrigins
+    ),
+    undefined
+  )
+  assert.deepStrictEqual(
+    getFileUploadValue('/static/upload/file-id', allowedOrigins, 'https://forms.example.com'),
+    {
+      filename: 'Attachment',
+      url: '/static/upload/file-id?attname=Attachment'
+    }
+  )
+  assert.strictEqual(
+    isAllowedUrlOrigin('https://uploads.example.com.attacker.test/file-id', allowedOrigins),
+    false
+  )
+}
+
+function testOnlyTrustedStripeReceiptsAreClickable() {
+  assert.strictEqual(isTrustedStripeReceiptUrl('https://pay.stripe.com/receipts/payment/abc'), true)
+  assert.strictEqual(isTrustedStripeReceiptUrl('javascript:alert(document.domain)'), false)
+  assert.strictEqual(isTrustedStripeReceiptUrl('http://pay.stripe.com/receipts/payment/abc'), false)
+  assert.strictEqual(
+    isTrustedStripeReceiptUrl('https://pay.stripe.com.attacker.test/receipts/payment/abc'),
+    false
+  )
+}
+
 function run() {
   testNormalizesCurrentAndLegacyFileValues()
   testSupportsSelfHostedUrlsAndRejectsUnsafeProtocols()
+  testDashboardOnlyLinksToTrustedUploadOrigins()
+  testOnlyTrustedStripeReceiptsAreClickable()
 }
 
 if (require.main === module) {

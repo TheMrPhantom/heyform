@@ -402,12 +402,35 @@ function validateDateRange(rule: FieldsToValidateRules, value: AnswerValue) {
 }
 
 function validateFile(rule: FieldsToValidateRules, value: AnswerValue) {
-  if (!helper.isValid(value) && helper.isObject(value)) {
+  let url: unknown = value
+
+  if (helper.isObject(value)) {
+    url = value.url
+
+    if (typeof url !== 'string') {
+      const prefix = value.urlPrefix ?? value.cdnUrlPrefix
+      const key = value.key ?? value.cdnKey
+
+      if (typeof prefix === 'string' && typeof key === 'string' && key.length > 0) {
+        url = `${prefix.replace(/\/$/, '')}/${key.replace(/^\//, '')}`
+      }
+    }
+  }
+
+  let valid = false
+
+  if (typeof url === 'string') {
+    try {
+      valid = ['http:', 'https:'].includes(new URL(url).protocol)
+    } catch {}
+  }
+
+  if (!valid) {
     throw new ValidateError({
       id: rule.id,
       kind: rule.kind,
       title: rule.title,
-      message: 'This field is required'
+      message: 'Please upload a valid file'
     })
   }
 }

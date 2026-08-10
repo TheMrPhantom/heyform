@@ -307,6 +307,36 @@ test('payment', () => {
   expect(validate(rules[0], undefined)).toBe(undefined)
 })
 
+test('file upload requires a usable http(s) upload reference', () => {
+  const rule = fieldsToValidateRules([
+    {
+      id: 'FILE_UPLOAD',
+      kind: FieldKindEnum.FILE_UPLOAD,
+      title: 'Attachment',
+      validations: { required: false }
+    }
+  ])[0]
+
+  expect(() => validate(rule, {})).toThrowError()
+  expect(() => validate(rule, { filename: 'report.pdf' })).toThrowError()
+  expect(() =>
+    validate(rule, { filename: 'report.pdf', url: 'javascript:alert(document.domain)' })
+  ).toThrowError()
+  expect(
+    validate(rule, {
+      filename: 'report.pdf',
+      url: 'https://forms.example.com/static/upload/file-id'
+    })
+  ).toBe(undefined)
+  expect(
+    validate(rule, {
+      filename: 'legacy.pdf',
+      urlPrefix: 'https://uploads.example.com/files',
+      key: 'file-id'
+    })
+  ).toBe(undefined)
+})
+
 test('legal terms rejects non-boolean and requires acceptance', () => {
   const requiredRule = fieldsToValidateRules([
     {

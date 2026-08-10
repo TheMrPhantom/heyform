@@ -9,17 +9,99 @@ import {
 } from '@heyform-inc/shared-types-enums'
 import { BadRequestException } from '@nestjs/common'
 
-import { APP_HOMEPAGE_URL, S3_PUBLIC_URL } from '@environments'
+import { APP_HOMEPAGE_URL, S3_BUCKET, S3_ENDPOINT, S3_PUBLIC_URL } from '@environments'
 
 import { isAllowedUrlOrigin } from './outbound-url'
 
-export const TRUSTED_SIGNATURE_ORIGINS = [APP_HOMEPAGE_URL, S3_PUBLIC_URL].filter(
+const s3UploadUrl =
+  S3_PUBLIC_URL ||
+  (S3_ENDPOINT && S3_BUCKET ? `${S3_ENDPOINT.replace(/\/+$/, '')}/${S3_BUCKET}` : undefined)
+
+export const TRUSTED_UPLOAD_ORIGINS = [APP_HOMEPAGE_URL, s3UploadUrl].filter(
   (origin): origin is string => typeof origin === 'string' && origin.length > 0
 )
 
+// Keep the existing export for callers that only validate signature answers.
+export const TRUSTED_SIGNATURE_ORIGINS = TRUSTED_UPLOAD_ORIGINS
+
+export function isTrustedUploadUrl(
+  value: unknown,
+  allowedOrigins: string[] = TRUSTED_UPLOAD_ORIGINS
+): value is string {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  try {
+    const url = new URL(value)
+
+    return (
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      isAllowedUrlOrigin(url, allowedOrigins)
+    )
+  } catch {
+    return false
+  }
+}
+
+function getFileUploadAnswerUrl(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return
+  }
+
+  const file = value as Record<string, unknown>
+
+  if (typeof file.url === 'string') {
+    return file.url
+  }
+
+  const prefix = file.urlPrefix ?? file.cdnUrlPrefix
+  const key = file.key ?? file.cdnKey
+
+  if (typeof prefix === 'string' && typeof key === 'string' && key.length > 0) {
+    return `${prefix.replace(/\/$/, '')}/${key.replace(/^\//, '')}`
+  }
+}
+
+export function isTrustedFileUploadAnswer(
+  value: unknown,
+  allowedOrigins: string[] = TRUSTED_UPLOAD_ORIGINS
+): boolean {
+  return isTrustedUploadUrl(getFileUploadAnswerUrl(value), allowedOrigins)
+}
+
+export function isTrustedStripeReceiptUrl(value: unknown): boolean {
+  if (value === undefined || value === null) {
+    return true
+  }
+
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  try {
+    const url = new URL(value)
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, '')
+
+    return (
+      url.protocol === 'https:' &&
+      url.port === '' &&
+      url.username === '' &&
+      url.password === '' &&
+      (hostname === 'stripe.com' || hostname.endsWith('.stripe.com'))
+    )
+  } catch {
+    return false
+  }
+}
+
 export function isTrustedSignatureUrl(
   value: unknown,
-  allowedOrigins: string[] = TRUSTED_SIGNATURE_ORIGINS
+  allowedOrigins: string[] = TRUSTED_UPLOAD_ORIGINS
 ): value is string {
   if (typeof value !== 'string') {
     return false
@@ -97,6 +179,17 @@ export function assertSafeSpecialFieldAnswers(
 
       case FieldKindEnum.SIGNATURE:
         valid = isTrustedSignatureUrl(value)
+        break
+
+      case FieldKindEnum.FILE_UPLOAD:
+        valid = isTrustedFileUploadAnswer(value)
+        break
+
+      case FieldKindEnum.PAYMENT:
+        valid =
+          typeof value === 'object' &&
+          !Array.isArray(value) &&
+          isTrustedStripeReceiptUrl((value as Record<string, unknown>).receiptUrl)
         break
     }
 

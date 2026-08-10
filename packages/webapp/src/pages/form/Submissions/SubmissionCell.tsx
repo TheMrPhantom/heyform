@@ -4,7 +4,14 @@ import Big from 'big.js'
 import { FC, Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { cn, formatDay, getFileUploadValue, isHttpUrl, unixDate } from '@/utils'
+import {
+  cn,
+  formatDay,
+  getFileUploadValue,
+  isHttpUrl,
+  isTrustedStripeReceiptUrl,
+  unixDate
+} from '@/utils'
 import { CURRENCY_SYMBOLS, htmlUtils } from '@heyform-inc/answer-utils'
 import { helper } from '@heyform-inc/utils'
 
@@ -97,7 +104,11 @@ const DateRangeItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) 
 }
 
 const FileUploadItem: FC<SubmissionCellProps> = ({ answer, field, isTableCell }) => {
-  const value = getFileUploadValue(answer.value)
+  const value = getFileUploadValue(
+    answer.value,
+    [...(window.heyform.uploadOrigins || []), window.location.origin],
+    window.location.origin
+  )
 
   if (answer.kind !== field.kind || !value) {
     return null
@@ -295,6 +306,9 @@ const PaymentItem: FC<SubmissionCellProps> = ({ answer, field }) => {
   const amount = answer.value.amount || 0
   const amountString = CURRENCY_SYMBOLS[answer.value.currency] + Big(amount).div(100).toFixed(2)
   const isCompleted = helper.isValid(answer.value.paymentIntentId)
+  const receiptUrl = isTrustedStripeReceiptUrl(answer.value.receiptUrl)
+    ? answer.value.receiptUrl
+    : undefined
 
   return (
     <div className="flex items-center">
@@ -313,9 +327,9 @@ const PaymentItem: FC<SubmissionCellProps> = ({ answer, field }) => {
         <div className="ml-2">{amountString}</div>
       </div>
 
-      {isCompleted && (
+      {isCompleted && receiptUrl && (
         <div className="ml-2">
-          <a href={answer.value.receiptUrl} target="_blank" rel="noreferrer">
+          <a href={receiptUrl} target="_blank" rel="noreferrer">
             <IconArrowUpRight className="h-4 w-4" />
           </a>
         </div>
