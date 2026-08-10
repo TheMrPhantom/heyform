@@ -215,14 +215,6 @@ export class CompleteSubmissionResolver {
           fieldId: paymentAnswer.id
         }
       })
-
-      await this.submissionService.updateAnswer(submissionId, {
-        ...paymentAnswer,
-        value: {
-          ...paymentAnswer.value,
-          clientSecret: result.clientSecret
-        }
-      })
     }
 
     // Form report Queue

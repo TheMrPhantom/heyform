@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt'
 
 import { LoginResolver, loginAttemptKey } from '../src/resolver/auth/login.resolver'
 import { SendResetPasswordEmailResolver } from '../src/resolver/auth/send-reset-password-email.resolver'
+import { UpdateEmailResolver } from '../src/resolver/user/update-email.resolver'
 import { AuthService } from '../src/service/auth.service'
 
 async function testVerificationCodesAreConsumedAtomically() {
@@ -138,11 +139,73 @@ async function testResetEmailDoesNotRevealWhetherAccountExists() {
   assert.strictEqual(mailCount, 1)
 }
 
+async function testEmailChangeRequiresPasswordAndInvalidatesSessions() {
+  const password = 'CurrentPassword1!'
+  const user = {
+    id: 'user_1',
+    email: 'old@example.com',
+    password: await bcrypt.hash(password, 4)
+  }
+  let verificationChecks = 0
+  let updates = 0
+  let invalidations = 0
+  const resolver = new UpdateEmailResolver(
+    {
+      attemptsCheck: async (_key: string, check: () => Promise<void>) => check(),
+      checkVerificationCode: async () => {
+        verificationChecks += 1
+      },
+      invalidateSessions: async (userId: string) => {
+        assert.strictEqual(userId, user.id)
+        invalidations += 1
+      }
+    } as any,
+    {
+      findByEmail: async () => null,
+      update: async (userId: string, updatesToApply: Record<string, any>) => {
+        assert.strictEqual(userId, user.id)
+        assert.deepStrictEqual(updatesToApply, {
+          email: 'new@example.com',
+          isEmailVerified: true
+        })
+        updates += 1
+        return true
+      }
+    } as any
+  )
+
+  await assert.rejects(
+    () =>
+      resolver.updateEmail(user as any, {
+        email: 'new@example.com',
+        code: '123456',
+        currentPassword: 'WrongPassword1!'
+      }),
+    /The password does not match/
+  )
+  assert.strictEqual(verificationChecks, 0)
+  assert.strictEqual(updates, 0)
+  assert.strictEqual(invalidations, 0)
+
+  assert.strictEqual(
+    await resolver.updateEmail(user as any, {
+      email: 'new@example.com',
+      code: '123456',
+      currentPassword: password
+    }),
+    true
+  )
+  assert.strictEqual(verificationChecks, 1)
+  assert.strictEqual(updates, 1)
+  assert.strictEqual(invalidations, 1)
+}
+
 async function run() {
   await testVerificationCodesAreConsumedAtomically()
   await testConcurrentAttemptsReserveSlotsBeforeCredentialChecks()
   await testLoginAttemptsAreScopedToTrustedSourceAndClearedOnSuccess()
   await testResetEmailDoesNotRevealWhetherAccountExists()
+  await testEmailChangeRequiresPasswordAndInvalidatesSessions()
 }
 
 if (require.main === module) {

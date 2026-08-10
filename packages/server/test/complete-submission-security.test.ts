@@ -1,10 +1,12 @@
 import { CaptchaKindEnum, FieldKindEnum } from '@heyform-inc/shared-types-enums'
 import * as assert from 'assert'
 
+import { PaymentIntentWebhookController } from '../src/controller/payment-intent-webhook.controller'
 import { CompleteSubmissionResolver } from '../src/resolver/endpoint/complete-submission.resolver'
 
 async function testPaymentUsesPublishedFormConfiguration() {
   let storedSubmission: Record<string, any> | undefined
+  let updatedAnswer: Record<string, any> | undefined
   let paymentIntent: Record<string, any> | undefined
   const now = Math.floor(Date.now() / 1_000)
   const form = {
@@ -56,7 +58,10 @@ async function testPaymentUsesPublishedFormConfiguration() {
       storedSubmission = submission
       return 'submission_1'
     },
-    updateAnswer: async () => true,
+    updateAnswer: async (_submissionId: string, answer: Record<string, any>) => {
+      updatedAnswer = answer
+      return true
+    },
     countInForm: async () => 0
   }
   const paymentService = {
@@ -109,10 +114,65 @@ async function testPaymentUsesPublishedFormConfiguration() {
   assert.strictEqual(storedSubmission?.answers[0].value.currency, 'usd')
   assert.strictEqual(storedSubmission?.answers[1].value.amount, 1000)
   assert.strictEqual(storedSubmission?.answers[1].value.currency, 'eur')
+  assert.strictEqual(storedSubmission?.answers[0].value.clientSecret, undefined)
+  assert.strictEqual(updatedAnswer, undefined)
+}
+
+async function testPaymentWebhookDoesNotRequireOrPersistClientSecret() {
+  let updatedAnswer: Record<string, any> | undefined
+  const controller = new PaymentIntentWebhookController(
+    {
+      constructEvent: () => ({
+        type: 'payment_intent.succeeded',
+        data: {
+          object: {
+            id: 'pi_1',
+            client_secret: 'client_secret_from_stripe',
+            metadata: {
+              submissionId: 'submission_1',
+              fieldId: 'payment_1'
+            },
+            charges: {
+              data: [
+                {
+                  billing_details: { name: 'Respondent' },
+                  receipt_url: 'https://stripe.example/receipt'
+                }
+              ]
+            }
+          }
+        }
+      })
+    } as any,
+    {
+      findById: async () => ({
+        answers: [
+          {
+            id: 'payment_1',
+            value: {
+              amount: 4999,
+              currency: 'usd',
+              clientSecret: 'legacy_stored_secret'
+            }
+          }
+        ]
+      }),
+      updateAnswer: async (_submissionId: string, answer: Record<string, any>) => {
+        updatedAnswer = answer
+      }
+    } as any
+  )
+
+  await controller.webhook('valid_signature', { body: Buffer.from('{}') })
+
+  assert.strictEqual(updatedAnswer?.value.clientSecret, undefined)
+  assert.strictEqual(updatedAnswer?.value.paymentIntentId, 'pi_1')
+  assert.strictEqual(updatedAnswer?.value.billingDetails.name, 'Respondent')
 }
 
 async function run() {
   await testPaymentUsesPublishedFormConfiguration()
+  await testPaymentWebhookDoesNotRequireOrPersistClientSecret()
 }
 
 if (require.main === module) {
