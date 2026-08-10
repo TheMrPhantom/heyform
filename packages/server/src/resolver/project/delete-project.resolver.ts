@@ -1,10 +1,11 @@
+import { FormStatusEnum } from '@heyform-inc/shared-types-enums'
 import { BadRequestException } from '@nestjs/common'
 
 import { Auth, Project, ProjectGuard, Team, User } from '@decorator'
 import { DeleteProjectInput } from '@graphql'
 import { ProjectModel, TeamModel, UserModel } from '@model'
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
-import { AuthService, MailService, ProjectService } from '@service'
+import { AuthService, FormService, MailService, ProjectService, SubmissionService } from '@service'
 
 @Resolver()
 @Auth()
@@ -12,6 +13,8 @@ export class DeleteProjectResolver {
   constructor(
     private readonly authService: AuthService,
     private readonly projectService: ProjectService,
+    private readonly formService: FormService,
+    private readonly submissionService: SubmissionService,
     private readonly mailService: MailService
   ) {}
 
@@ -34,7 +37,20 @@ export class DeleteProjectResolver {
       await this.authService.checkVerificationCode(key, input.code)
     })
 
-    await this.projectService.delete(input.projectId)
+    const forms = await this.formService.findAllInProject(project.id)
+    const formIds = forms.map(form => form.id)
+
+    if (formIds.length > 0) {
+      await this.formService.updateMany(formIds, {
+        'settings.active': false,
+        status: FormStatusEnum.TRASH
+      })
+      await this.submissionService.deleteAll(formIds)
+      await this.formService.delete(formIds)
+    }
+
+    await this.projectService.deleteAllMemberInProject(project.id)
+    await this.projectService.delete(project.id)
 
     this.mailService.projectDeletionAlert(
       user.email,

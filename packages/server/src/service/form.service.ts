@@ -55,6 +55,10 @@ export class FormService {
     return this.formModel.find(conditions)
   }
 
+  async findAllInProject(projectId: string): Promise<FormModel[]> {
+    return this.formModel.find({ projectId })
+  }
+
   async findRecentInTeam(
     teamId: string,
     projectIds: string[],
