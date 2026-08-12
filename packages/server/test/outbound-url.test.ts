@@ -70,6 +70,12 @@ function testBlocksAlternateIPv6Encodings() {
   assert.strictEqual(isPrivateAddress('64:ff9b::a9fe:a9fe'), true) // -> 169.254.169.254
   // 6to4 2002::/16
   assert.strictEqual(isPrivateAddress('2002:7f00:1::'), true) // -> 127.0.0.1
+  // Teredo 2001::/32 (server=192.168.0.1, obfuscated client=127.0.0.1)
+  assert.strictEqual(isPrivateAddress('2001:0:c0a8:1:0:0:80ff:fffe'), true)
+  // Discard-only and documentation prefixes
+  assert.strictEqual(isPrivateAddress('100::1'), true)
+  assert.strictEqual(isPrivateAddress('2001:db8::1'), true)
+  assert.strictEqual(isPrivateAddress('3fff::1'), true)
   // Site-local (deprecated)
   assert.strictEqual(isPrivateAddress('fec0::1'), true)
 }
@@ -121,6 +127,21 @@ async function testAssertSafeOutboundUrlRejectsEncodedPrivate() {
     skipDnsLookup: true
   })
   assert.ok(url instanceof URL)
+}
+
+async function testRejectsTeredoDnsResolution() {
+  await assert.rejects(
+    () =>
+      assertSafeOutboundUrl('https://evil.example/hook', {
+        dnsLookup: (async () => [
+          {
+            address: '2001:0:c0a8:1:0:0:80ff:fffe',
+            family: 6
+          }
+        ]) as any
+      }),
+    (error: any) => error?.message === 'Private network URLs are not allowed'
+  )
 }
 
 async function testLocalOutboundAccessFailsClosed() {
@@ -206,6 +227,7 @@ async function run() {
   testAllowsPublicMappedAddresses()
   testPreservesKnownRanges()
   await testAssertSafeOutboundUrlRejectsEncodedPrivate()
+  await testRejectsTeredoDnsResolution()
   await testLocalOutboundAccessFailsClosed()
   await testExplicitDevelopmentOutboundOptIn()
   await testSafeOutboundRequestPinsValidatedDnsAddresses()

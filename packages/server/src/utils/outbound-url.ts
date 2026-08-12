@@ -130,6 +130,10 @@ PRIVATE_IPV4.addSubnet('224.0.0.0', 3) // multicast, reserved, broadcast (>= 224
 const PRIVATE_IPV6 = new BlockList()
 PRIVATE_IPV6.addAddress('::', 'ipv6') // unspecified
 PRIVATE_IPV6.addAddress('::1', 'ipv6') // loopback
+PRIVATE_IPV6.addSubnet('100::', 64, 'ipv6') // discard-only (RFC6666)
+PRIVATE_IPV6.addSubnet('2001::', 32, 'ipv6') // Teredo (RFC4380)
+PRIVATE_IPV6.addSubnet('2001:db8::', 32, 'ipv6') // documentation (RFC3849)
+PRIVATE_IPV6.addSubnet('3fff::', 20, 'ipv6') // documentation (RFC9637)
 PRIVATE_IPV6.addSubnet('fc00::', 7, 'ipv6') // unique-local
 PRIVATE_IPV6.addSubnet('fe80::', 10, 'ipv6') // link-local
 PRIVATE_IPV6.addSubnet('fec0::', 10, 'ipv6') // site-local (deprecated)
