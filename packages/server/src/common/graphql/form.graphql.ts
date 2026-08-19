@@ -1007,6 +1007,9 @@ export class FormSettingType {
 
   @Field({ nullable: true })
   enableEmailNotification?: boolean
+
+  @Field({ nullable: true })
+  removeBranding?: boolean
 }
 
 @ObjectType()
