@@ -76,6 +76,7 @@ export const REDIS_PORT: number = +process.env.REDIS_PORT || 6379
 export const REDIS_USERNAME: string = process.env.REDIS_USERNAME
 export const REDIS_PASSWORD: string = process.env.REDIS_PASSWORD
 export const REDIS_DB: number = +process.env.REDIS_DB || 0
+export const REDIS_TLS: string = process.env.REDIS_TLS
 
 // SMTP
 export const VERIFY_USER_EMAIL: boolean = toBool(process.env.VERIFY_USER_EMAIL, false)

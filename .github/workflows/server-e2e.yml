@@ -80,6 +80,9 @@ jobs:
       - name: Type-check server
         run: pnpm --filter ./packages/server type-check
 
+      - name: Run server unit tests
+        run: pnpm --filter ./packages/server test:unit
+
       - name: Build server
         run: pnpm --filter ./packages/server build
 
