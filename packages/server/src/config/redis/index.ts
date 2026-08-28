@@ -15,7 +15,7 @@ import {
 import { toJSON } from '@heyform-inc/utils'
 
 export function createRedisOptions(db: number = REDIS_DB, tls: string = REDIS_TLS): RedisOptions {
-  const tlsOptions = toJSON<NonNullable<RedisOptions['tls']>>(tls)
+  const tlsOptions = tls ? toJSON<NonNullable<RedisOptions['tls']>>(tls, {}) : undefined
 
   return {
     host: REDIS_HOST,
