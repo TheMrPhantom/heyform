@@ -1,6 +1,38 @@
 import * as assert from 'assert'
 
-import { getTheme, getThemeStyle } from '../src/theme'
+import { SYSTEM_FONTS, getTheme, getThemeStyle, getWebFontURL, insertWebFont } from '../src/theme'
+
+function testPreservesSystemFontsWithoutLoadingGoogleFonts() {
+  const theme = getTheme({
+    fontFamily: SYSTEM_FONTS
+  })
+
+  assert.strictEqual(theme.fontFamily, SYSTEM_FONTS)
+  assert.strictEqual(getWebFontURL(theme.fontFamily), '')
+  assert.ok(getThemeStyle(theme).includes(`--heyform-font-family: ${SYSTEM_FONTS};`))
+}
+
+function testRemovesExistingWebFontWhenUsingSystemFonts() {
+  let removed = false
+
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: {
+      getElementById: () => ({
+        remove: () => {
+          removed = true
+        }
+      })
+    }
+  })
+
+  try {
+    insertWebFont(SYSTEM_FONTS)
+    assert.strictEqual(removed, true)
+  } finally {
+    Reflect.deleteProperty(globalThis, 'document')
+  }
+}
 
 function testRendersSupportedBackgroundImages() {
   const urlStyle = getThemeStyle(
@@ -60,6 +92,8 @@ function testReplacesUnsafeThemeColorValues() {
 }
 
 function run() {
+  testPreservesSystemFontsWithoutLoadingGoogleFonts()
+  testRemovesExistingWebFontWhenUsingSystemFonts()
   testRendersSupportedBackgroundImages()
   testOmitsBackgroundImageRuleInjection()
   testReplacesUnsafeThemeColorValues()

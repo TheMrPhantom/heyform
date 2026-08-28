@@ -90,11 +90,16 @@ export function getWebFontURL(name?: string | string[]) {
     return ''
   }
 
-  const fontNames = ((helper.isArray(name) ? name : [name]) as string[])
-    .map(row => (row ? FONT_FAMILY_ALIASES[row] || row : row))
-    .filter(row => row && GOOGLE_FONTS.includes(row))
+  const requestedFontNames = ((helper.isArray(name) ? name : [name]) as string[]).map(row =>
+    row ? FONT_FAMILY_ALIASES[row] || row : row
+  )
+  const fontNames = requestedFontNames.filter(row => row && GOOGLE_FONTS.includes(row))
 
   if (helper.isEmpty(fontNames)) {
+    if (requestedFontNames.includes(SYSTEM_FONTS)) {
+      return ''
+    }
+
     fontNames.push(DEFAULT_THEME.fontFamily!)
   }
 
@@ -108,11 +113,16 @@ export function getWebFontURL(name?: string | string[]) {
 export function insertWebFont(name?: string | string[], id = 'heyform-webfont') {
   const href = getWebFontURL(name)
 
-  if (!href) {
+  if (typeof document === 'undefined') {
     return
   }
 
   let link = document.getElementById(id)
+
+  if (!href) {
+    link?.remove()
+    return
+  }
 
   if (!link) {
     link = document.createElement('link')
@@ -136,7 +146,10 @@ export function getTheme(theme?: FormTheme): FormTheme {
     newTheme.fontFamily = FONT_FAMILY_ALIASES[newTheme.fontFamily] || newTheme.fontFamily
   }
 
-  if (!newTheme.fontFamily || !GOOGLE_FONTS.includes(newTheme.fontFamily)) {
+  if (
+    !newTheme.fontFamily ||
+    (newTheme.fontFamily !== SYSTEM_FONTS && !GOOGLE_FONTS.includes(newTheme.fontFamily))
+  ) {
     newTheme.fontFamily = DEFAULT_THEME.fontFamily
   }
 
